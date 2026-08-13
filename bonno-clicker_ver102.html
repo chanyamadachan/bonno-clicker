@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>煩悩クリッカー</title>
+<style>
+  :root{--ink:#2b1c0f;--cream:#f6e7c4;--gold:#e8c060;--gold2:#ffdd80;--green:#2f8f2f;--mura:#8a5fc0;
+    --serif:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--sans);color:var(--cream);min-height:100%;background:#140d07}
+  .pix{image-rendering:pixelated;image-rendering:crisp-edges;background-repeat:no-repeat;background-position:center;background-size:contain}
+
+  #bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;
+    background:radial-gradient(140% 100% at 50% -12%,#3d2c1d,#160f09),radial-gradient(90% 70% at 12% 112%,rgba(120,80,160,.20),transparent 60%),radial-gradient(90% 70% at 88% 112%,rgba(180,130,50,.18),transparent 60%),linear-gradient(180deg,#2c2015,#130c07)}
+  #bgfx::before,#bgfx::after{content:"";position:absolute;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(232,192,96,.055) 0 3deg,transparent 3deg 11deg)}
+  #bgfx::before{width:1100px;height:1100px;left:-260px;top:-320px;animation:spin 140s linear infinite}
+  #bgfx::after{width:820px;height:820px;right:-220px;bottom:-260px;animation:spin 100s linear infinite reverse}
+  #motes{position:fixed;inset:-40px;z-index:-1;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(2px 2px at 20% 30%,rgba(255,221,128,.7),transparent),radial-gradient(2px 2px at 70% 60%,rgba(255,221,128,.5),transparent),radial-gradient(1.5px 1.5px at 40% 80%,rgba(255,240,190,.6),transparent),radial-gradient(2px 2px at 85% 20%,rgba(232,145,47,.5),transparent),radial-gradient(1.5px 1.5px at 55% 45%,rgba(255,221,128,.5),transparent),radial-gradient(2px 2px at 10% 70%,rgba(255,221,128,.45),transparent);
+    background-size:520px 520px;animation:drift 26s linear infinite}
+  @keyframes drift{from{transform:translateY(0)}to{transform:translateY(-520px)}}
+
+  .ticker{position:sticky;top:0;z-index:20;height:32px;background:linear-gradient(180deg,#efe1c4,#d6bf90);color:#3a2a1c;border-bottom:3px solid #1c140d;box-shadow:0 2px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:13px;padding:0 12px}
+  .ticker b{color:#7a2f1c}
+  .ticker .msg{opacity:1;transition:opacity .3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+  .topbar{max-width:1300px;margin:8px auto 6px;padding:0 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:8px}
+  .brand h1{font-family:var(--serif);font-size:22px;color:var(--gold);letter-spacing:.03em;text-shadow:0 2px 0 #1c140d,0 0 14px rgba(232,192,96,.4)}
+  .brand .tag{font-size:10px;background:#7a2f1c;color:#f6e7c4;padding:2px 9px;border-radius:3px;border:1px solid #1c140d}
+  .meters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .chip{background:linear-gradient(180deg,#463321,#2c1f14);border:1px solid #6b5230;border-radius:5px;padding:3px 10px;text-align:center;min-width:52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+  .chip .k{font-size:9px;color:#b79b6a;letter-spacing:.12em;display:block}
+  .chip .v{font-size:14px;font-family:var(--serif);color:var(--gold2)}
+  .chip.mult .v{color:#7fd6a6} .chip.kudoku .v{color:#e6a9ff}
+  .sound{min-width:34px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+  .sound:active{transform:translateY(1px)}
+
+  .app{max-width:1300px;margin:0 auto;padding:4px 10px 50px;display:grid;grid-template-columns:300px minmax(0,1fr) 344px;gap:12px;align-items:start}
+  @media(max-width:1040px){.app{grid-template-columns:1fr}.col-mok{order:-1}}
+  .card{border-radius:9px;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+
+  .col-scene{border:2px solid #4a3521;background:linear-gradient(180deg,#241a12,#17100a);overflow:hidden;min-height:560px;max-height:calc(100vh - 100px);display:flex;flex-direction:column}
+  .scenetabs{display:flex;flex:none;border-bottom:2px solid #4a3521}
+  .stab{flex:1;font-family:var(--serif);font-size:14px;padding:8px;background:linear-gradient(180deg,#241a12,#1a120b);color:#9c8358;border:none;border-right:1px solid #3a2a1c;cursor:pointer;letter-spacing:.08em}
+  .stab:last-child{border-right:none}
+  .stab.on{background:linear-gradient(180deg,#3a2a1c,#2a1f14);color:var(--gold2)}
+  .sceneBody{flex:1;overflow-y:auto}
+  .sceneBody::-webkit-scrollbar{width:8px}.sceneBody::-webkit-scrollbar-thumb{background:#5b4326;border-radius:8px}
+  .midhead{font-family:var(--serif);font-size:14px;color:var(--gold);padding:8px 12px;border-bottom:2px solid #4a3521;letter-spacing:.06em;background:linear-gradient(180deg,#33261a,#241a12)}
+  .midhead small{color:#9c8358;font-size:10px;display:block;margin-top:2px;letter-spacing:0}
+  .band{position:relative;border-bottom:2px solid rgba(0,0,0,.35);padding:6px 9px;overflow:hidden;cursor:help}
+  .band.boosted{box-shadow:inset 0 0 0 2px rgba(255,221,128,.55),inset 0 0 26px rgba(255,221,128,.14)}
+  .band.pulse{animation:bandpulse .6s ease}
+  @keyframes bandpulse{0%{filter:brightness(2.1)}100%{filter:brightness(1)}}
+  .bandhead{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+  .bandhead .bi{width:24px;height:24px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.25);border-radius:5px;background-size:80%}
+  .bandhead .bn{font-family:var(--serif);font-size:13px;color:#fff;text-shadow:0 1px 2px #000}
+  .bandhead .bc{font-size:11px;color:rgba(255,255,255,.9);margin-left:auto}
+  .bandhead .ups{color:#ffdd80;font-size:11px;letter-spacing:1px}
+  .sprites{display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start;line-height:1}
+  .sp{width:18px;height:18px;background-size:contain}
+  .sp.new{animation:sppop .35s ease}
+  @keyframes sppop{0%{transform:scale(0) rotate(-30deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+  .sp.boost{background-color:rgba(255,221,128,.28);border-radius:4px}
+  .more{font-size:11px;color:rgba(255,255,255,.75);align-self:center;margin-left:3px}
+  .midempty{color:#8c7350;font-size:12px;text-align:center;padding:40px 16px;line-height:1.9}
+  .inpad{padding:12px}
+  .sttitle{font-family:var(--serif);font-size:14px;color:var(--gold);margin:2px 0 8px;letter-spacing:.05em}
+  .stgrid{display:grid;grid-template-columns:1fr;gap:7px;margin-bottom:16px}
+  .stcard{background:linear-gradient(180deg,#463321,#2c1f14);border:1px solid #6b5230;border-radius:7px;padding:8px 12px;display:flex;align-items:baseline;justify-content:space-between}
+  .stcard .sk{font-size:11px;color:#b79b6a;letter-spacing:.05em}
+  .stcard .sv{font-family:var(--serif);font-size:19px;color:var(--gold2)}
+  .achgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .ach{background:#2c2114;border:1px solid #5b4326;border-radius:6px;padding:6px 8px;opacity:.55;transition:.25s}
+  .ach.got{opacity:1;background:linear-gradient(180deg,#4a3826,#33260f);border-color:#8c6f45}
+  .ach .an{font-family:var(--serif);font-size:11.5px;color:#c7ac74} .ach.got .an{color:#ffdd80}
+  .ach .ad{font-size:9px;color:#9c8358;margin-top:2px;line-height:1.4}
+
+  .col-mok{position:relative;overflow:hidden;border:2px solid #6b4f2c;background:radial-gradient(120% 110% at 50% 8%,#4a3420,#20160f);box-shadow:inset 0 0 60px rgba(0,0,0,.6),0 3px 0 rgba(0,0,0,.4),0 0 0 4px rgba(232,192,96,.10);min-height:560px;display:flex;flex-direction:column}
+  .col-mok.shake{animation:shakeK .3s ease}
+  @keyframes shakeK{0%,100%{transform:translate(0,0)}15%{transform:translate(-6px,4px)}30%{transform:translate(5px,-4px)}45%{transform:translate(-4px,3px)}60%{transform:translate(4px,-3px)}75%{transform:translate(-2px,2px)}}
+  #rain{position:absolute;inset:0;z-index:0;pointer-events:none}
+  #chill{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+  .chillsp{position:absolute;width:48px;height:48px;transform:translate(-50%,-50%);background-size:contain;background-repeat:no-repeat;image-rendering:pixelated;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45));animation:chillbob 6s ease-in-out infinite}
+  .chillsp.pop{animation:chillpop .6s ease,chillbob 6s ease-in-out .6s infinite}
+  .chillsp .zzz{position:absolute;top:-14px;left:60%;font-family:var(--serif);font-size:12px;color:rgba(255,240,200,.75);animation:zzz 3.2s ease-in-out infinite}
+  @keyframes chillbob{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-56%)}}
+  @keyframes chillpop{0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg);opacity:0}70%{transform:translate(-50%,-54%) scale(1.2)}100%{transform:translate(-50%,-50%) scale(1)}}
+  @keyframes zzz{0%{opacity:0;transform:translateY(4px)}30%{opacity:.9}100%{opacity:0;transform:translateY(-10px)}}
+  .lz{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 12px 20px}
+  .rank{font-family:var(--serif);background:linear-gradient(180deg,#f0d998,#d3ac52);color:#3a2a1c;border:1px solid #1c140d;border-radius:5px;padding:4px 22px;font-size:16px;margin-bottom:8px;box-shadow:0 2px 0 #1c140d;transition:transform .2s}
+  .rank.up{animation:rankpop .5s ease}
+  @keyframes rankpop{0%{transform:scale(1)}40%{transform:scale(1.22);filter:brightness(1.6)}100%{transform:scale(1)}}
+  .count{min-height:56px;display:flex;align-items:flex-end;justify-content:center;gap:4px}
+  .count .n{display:inline-block;font-family:var(--serif);color:var(--gold2);line-height:1;white-space:nowrap;letter-spacing:-.5px;text-shadow:0 2px 0 #1c140d,0 0 20px rgba(255,221,128,.4)}
+  .count .u{font-size:14px;color:#c7ac74;padding-bottom:4px}
+  .persec{font-size:13px;color:#e0b877;margin:4px 0 2px}
+  .momo{font-size:13px;font-family:var(--serif);color:#ff8a3a;margin-bottom:2px;text-shadow:0 0 8px rgba(255,138,58,.6);animation:momopulse .8s ease-in-out infinite}
+  @keyframes momopulse{0%,100%{opacity:1}50%{opacity:.6}}
+  .combo{width:200px;margin-bottom:4px}
+  .combo .ct{font-size:12px;font-family:var(--serif);color:#ffe0a0;text-shadow:0 0 6px rgba(255,200,90,.5)}
+  .combo .cbar{display:block;height:6px;background:rgba(0,0,0,.4);border-radius:4px;overflow:hidden;margin-top:2px;border:1px solid rgba(255,221,128,.3)}
+  .combo .cbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd24a,#ff8a3a);transition:width .12s}
+  .combo.hot .ct{color:#fff0b8;animation:momopulse .5s ease-in-out infinite}
+  .moktier{font-size:11px;color:#b79b6a;letter-spacing:.12em;margin-bottom:4px}
+  .clickzone{position:relative;width:320px;height:300px;max-width:100%;display:grid;place-items:center;user-select:none;cursor:pointer;transition:transform .08s ease-out}
+  .clickzone.hint::after{content:"叩いてみよう";position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:var(--serif);font-size:13px;color:#ffdd80;text-shadow:0 1px 3px #000;animation:momopulse 1s ease-in-out infinite;pointer-events:none}
+  .mokwrap{transform-origin:center center;animation:breathe 3.6s ease-in-out infinite}
+  .clickzone svg{display:block}
+  #mokBody,#bellBody,#shumoku{transform-box:fill-box;transform-origin:center}
+  .clickzone.hit #mokBody{animation:squish .16s ease}
+  .clickzone.hit #bellBody{animation:bellhit .16s ease}
+  .clickzone.hit #shumoku{animation:strike .16s ease}
+  .clickzone.morph #mokSvg{animation:morph .6s ease}
+  @keyframes breathe{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.05) translateY(-7px)}}
+  @keyframes squish{0%{transform:scale(1,1)}28%{transform:scale(1.14,.84)}58%{transform:scale(.95,1.06)}100%{transform:scale(1,1)}}
+  @keyframes bellhit{0%{transform:scale(1,1)}40%{transform:scale(1.07,.96)}100%{transform:scale(1,1)}}
+  @keyframes strike{0%{transform:translateX(0)}40%{transform:translateX(-16px)}100%{transform:translateX(0)}}
+  @keyframes morph{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(2)}100%{transform:scale(1)}}
+  #ornHalo{animation:spin 40s linear infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .tap{margin-top:2px;font-size:13px;letter-spacing:.2em;color:#c7ac74}
+  .tap small{display:block;letter-spacing:0;margin-top:3px;font-size:10px;color:#9c8358}
+  .float{position:absolute;left:50%;top:42%;font-family:var(--serif);font-size:24px;color:var(--gold2);pointer-events:none;text-shadow:0 2px 0 #1c140d;animation:rise .85s ease-out forwards;z-index:5}
+  .float.big{font-size:30px;color:#fff2c0}
+  .float.lucky{font-size:30px;color:#a6f0a0;text-shadow:0 2px 0 #1c140d,0 0 12px rgba(120,255,120,.6)}
+  .float.crit{font-size:34px;color:#ffcf4a;text-shadow:0 2px 0 #7a2f1c,0 0 16px rgba(255,120,60,.75)}
+  .float.sutra{font-size:16px;color:#ffe6a0;text-shadow:0 1px 4px #000,0 0 10px rgba(255,210,90,.5);animation:srise 1.25s ease-out forwards}
+  @keyframes rise{0%{opacity:0;transform:translate(-50%,0) scale(.7)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1.1)}}
+  @keyframes srise{0%{opacity:0;transform:translate(-50%,12px)}20%{opacity:.95}100%{opacity:0;transform:translate(-50%,-80px)}}
+  .aperks{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:300px;margin-top:10px}
+  .aperks .ap{font-size:10px;font-family:var(--serif);background:linear-gradient(180deg,#efe0ff,#d3bcef);color:#4a2f7a;border:1px solid #8a6bc0;border-radius:4px;padding:2px 7px;cursor:help}
+  .aperks .aph{width:100%;text-align:center;font-size:10px;color:#b79b6a;letter-spacing:.14em;margin-bottom:1px}
+  .rebirth{margin-top:14px;width:100%;max-width:280px;font-family:var(--serif);background:linear-gradient(180deg,#a074d6,#7a4fb0);color:#fff;border:2px solid #1c140d;border-radius:7px;box-shadow:0 3px 0 #1c140d;padding:11px 12px;font-size:15px;cursor:pointer;display:none;position:relative;z-index:3}
+  .rebirth:active{transform:translateY(2px);box-shadow:0 1px 0 #1c140d}
+  .rebirth b{display:block;font-size:11px;opacity:.92;margin-top:3px;font-family:var(--sans)}
+  .rebirth.ready{display:block}
+  .rebirth.locked{display:block;background:linear-gradient(180deg,#4a3a2a,#332619);color:#9c8358;cursor:default}
+  .rebirth.locked:active{transform:none;box-shadow:0 3px 0 #1c140d}
+
+  .col-shop{border:2px solid #1c140d;background:linear-gradient(180deg,#d8c298,#c3ac7d);overflow:hidden;position:relative;max-height:calc(100vh - 100px);display:flex;flex-direction:column}
+  .rscroll{overflow-y:auto}
+  .rscroll::-webkit-scrollbar{width:8px}.rscroll::-webkit-scrollbar-thumb{background:#8c6f45;border-radius:8px}
+  .shead{font-family:var(--serif);font-size:14px;color:#3a2a1c;background:linear-gradient(180deg,#e7d4a8,#d6bf8e);border-bottom:2px solid #8c6f45;padding:7px 12px;letter-spacing:.05em;position:sticky;top:0;z-index:2;display:flex;align-items:baseline;justify-content:space-between}
+  .shead .sc{font-size:10px;color:#7a5a2f;font-family:var(--sans)}
+  .buybar{display:flex;align-items:center;gap:4px;padding:6px 8px;background:#cbb488;border-bottom:1px solid #8c6f45;font-size:11px;color:#4a3521}
+  .qbtn{font-family:var(--serif);font-size:12px;padding:3px 9px;border:1px solid #8c6f45;border-radius:4px;background:#efe1c4;color:#3a2a1c;cursor:pointer}
+  .qbtn.on{background:#7a2f1c;color:#f6e7c4;border-color:#1c140d}
+  .sect{padding:7px}
+  .hint{font-size:11px;color:#6b5433;margin:0 2px 7px;line-height:1.6}.hint b{color:#7a2f1c}
+
+  .bld{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:linear-gradient(180deg,#f3e6c8,#e6d3a8);border:1px solid #8c6f45;border-radius:6px;padding:6px 9px;margin-bottom:5px;cursor:pointer;color:var(--ink);font-family:var(--sans);transition:filter .1s;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .bld:hover{filter:brightness(1.06)} .bld:active{transform:translateY(1px)}
+  .bld.afford{box-shadow:0 1px 2px rgba(0,0,0,.2),inset 0 0 0 2px rgba(47,143,47,.5)}
+  .bld.cant{opacity:.82}
+  .bld.hide{display:none}
+  .bld.locked{background:linear-gradient(180deg,#d8c8a8,#c8b691);cursor:default;opacity:.9}
+  .bld.locked:hover{filter:none} .bld.locked:active{transform:none}
+  .bld.locked .name{letter-spacing:.34em;color:#8c7350}
+  .bld .icon{width:42px;height:42px;flex:none;background:#f0e2c2;border:2px solid #1c140d;border-radius:8px;box-shadow:inset 0 2px 3px rgba(255,255,255,.2),inset 0 -3px 5px rgba(0,0,0,.25);background-size:78%}
+  .bld.locked .icon{background:#cbb897}
+  .bld.up .icon{background:#efe1c4;display:grid;place-items:center;font-size:19px;color:#7a4fb0;font-family:var(--serif)}
+  .bld .body{flex:1;min-width:0}
+  .bld .name{font-size:13.5px;font-weight:700}
+  .bld .rate{font-size:10px;color:#7a6647;margin-top:1px}
+  .bld.locked .rate{color:#9c8358}
+  .bld .right{text-align:right;flex:none}
+  .bld .cost{font-family:var(--serif);font-size:14px;color:var(--green)} .bld .cost.no{color:#a86a2e}
+  .bld.locked .cost{color:#9c8358}
+  .bld .own{font-size:10.5px;color:#8c6f45;margin-top:1px}
+  .bld .cnt{position:absolute;top:3px;right:10px;font-family:var(--serif);font-size:26px;color:rgba(43,28,15,.09)}
+  .bld .prog{position:absolute;left:0;bottom:0;height:3px;background:linear-gradient(90deg,#e8912f,#ffd24a);width:0}
+
+  .toasts{position:fixed;top:40px;right:12px;z-index:40;display:flex;flex-direction:column;gap:7px;align-items:flex-end;pointer-events:none}
+  .ofuda{background:#f6e7c4;color:var(--ink);border:2px solid #1c140d;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.4);padding:7px 13px 7px 40px;min-width:190px;position:relative;font-family:var(--sans);animation:slidein .4s cubic-bezier(.2,1.2,.4,1),out .5s ease 3.2s forwards}
+  .ofuda::before{content:"祓";position:absolute;left:7px;top:50%;transform:translateY(-50%);font-family:var(--serif);font-size:17px;color:#f6e7c4;background:#7a2f1c;width:26px;height:26px;border-radius:5px;display:grid;place-items:center}
+  .ofuda.morph::before{content:"変"} .ofuda.goen::before{content:"縁";background:#e79b16}
+  .ofuda.welcome::before{content:"還";background:#2f8f2f} .ofuda.luck::before{content:"福";background:#2f8f2f} .ofuda.rank::before{content:"位";background:#7a4fb0} .ofuda.houyou::before{content:"法";background:#b5473a}
+  .ofuda.welcome{animation:slidein .4s cubic-bezier(.2,1.2,.4,1),out .5s ease 5.4s forwards}
+  .ofuda .ot{font-size:9px;letter-spacing:.2em;color:#a86a2e}
+  .ofuda .on{font-family:var(--serif);font-size:14px;margin-top:1px}
+  .ofuda .ok{font-size:10px;color:var(--mura);margin-top:1px}
+  @keyframes slidein{from{transform:translateX(130%)}to{transform:translateX(0)}}
+  @keyframes out{to{transform:translateX(130%);opacity:0}}
+
+  .goen{position:fixed;z-index:35;width:88px;height:88px;cursor:pointer;display:grid;place-items:center;animation:bob 1.1s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(243,154,0,.7))}
+  @keyframes bob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
+  .goen .core{width:100%;height:100%;border-radius:50%;font-family:var(--serif);background:radial-gradient(circle at 36% 30%,#fff0b0,#ffcf4a 52%,#e79b16 100%);border:3px solid #7a4a10;display:grid;place-items:center;font-size:34px;color:#5a3400;box-shadow:0 0 26px rgba(255,207,74,.9)}
+  .goen.lucky .core{background:radial-gradient(circle at 36% 30%,#e6ffd8,#8ee06a 52%,#2f9a3a 100%);border-color:#1c6a20;color:#123c10;box-shadow:0 0 26px rgba(120,230,90,.9)}
+  .goen.frenzy .core{background:radial-gradient(circle at 36% 30%,#ffd6b0,#ff7a3a 52%,#c0392b 100%);border-color:#7a1f10;color:#3a0f00;box-shadow:0 0 26px rgba(255,90,50,.9)}
+  .goen.houyou .core{background:radial-gradient(circle at 36% 30%,#ffe0ef,#e07aa8 52%,#8a2f66 100%);border-color:#5a1f46;color:#3a0f2a;box-shadow:0 0 26px rgba(224,122,168,.9)}
+  .goen::after{content:"撞け！";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-family:var(--serif);font-size:12px;color:#ffdd80;text-shadow:0 1px 3px #000;white-space:nowrap}
+  .goen.lucky::after{content:"福を掴め！";color:#b6ffb0} .goen.frenzy::after{content:"連打！";color:#ffc0a0} .goen.houyou::after{content:"大法要！";color:#ffc0e0}
+  .feverbg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s;background:radial-gradient(circle at 50% 40%,rgba(255,221,128,.26),transparent 46%)}
+  .feverbg::before{content:"";position:absolute;inset:-30%;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,221,128,.15) 0deg 9deg,transparent 9deg 22deg);animation:spin 30s linear infinite}
+  .feverbg.on{opacity:1}
+  .banner{position:fixed;top:40px;left:50%;transform:translateX(-50%);z-index:38;font-family:var(--serif);background:linear-gradient(180deg,#ffe08a,#f0b52e);color:#4a2f00;border:2px solid #7a4a10;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.35);padding:6px 20px;font-size:15px;letter-spacing:.04em;display:none;pointer-events:none}
+  .banner.on{display:block}
+  .banner2{position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:38;font-family:var(--serif);background:linear-gradient(180deg,#ff9a5a,#e0432a);color:#3a0f00;border:2px solid #7a1f10;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.35);padding:5px 18px;font-size:14px;display:none;pointer-events:none}
+  .banner2.on{display:block}
+  .banner3{position:fixed;top:116px;left:50%;transform:translateX(-50%);z-index:38;font-family:var(--serif);background:linear-gradient(180deg,#f0a0c8,#c0468a);color:#3a0f2a;border:2px solid #7a1f56;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.35);padding:5px 18px;font-size:14px;display:none;pointer-events:none}
+  .banner3.on{display:block}
+
+  #tip{position:fixed;z-index:50;max-width:260px;background:#120c07;color:#f6e7c4;border:1px solid #8c6f45;border-radius:7px;box-shadow:0 6px 18px rgba(0,0,0,.6);padding:9px 11px;font-size:11px;line-height:1.6;pointer-events:none;display:none}
+  #tip .tt{font-family:var(--serif);font-size:14px;color:var(--gold2)}
+  #tip .ts{color:#b79b6a;font-size:10px;margin-bottom:5px}
+  #tip .tl{margin-top:3px}#tip b{color:#ffdd80}#tip .syn{color:#a6f0a0}
+
+  .modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.on{display:flex}
+  .mbox{background:linear-gradient(180deg,#efe1c4,#d6bf90);color:#2b1c0f;border:2px solid #1c140d;border-radius:10px;box-shadow:0 6px 0 rgba(0,0,0,.4);max-width:360px;width:100%;padding:18px}
+  .mbox .mmsg{font-size:14px;line-height:1.7;white-space:pre-line;margin-bottom:14px}
+  .mbtns{display:flex;gap:10px}
+  .mbtn{flex:1;font-family:var(--serif);font-size:14px;padding:10px;border:2px solid #1c140d;border-radius:6px;cursor:pointer;box-shadow:0 2px 0 #1c140d}
+  .mbtn:active{transform:translateY(2px);box-shadow:0 0 0 #1c140d}
+  .mbtn.yes{background:linear-gradient(180deg,#a074d6,#7a4fb0);color:#fff} .mbtn.no{background:#e7d4a8;color:#3a2a1c}
+
+  .goku{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:16px;overflow:auto;
+    background:radial-gradient(120% 100% at 50% -10%,#fff7e0,#ffe6a8 40%,#f0c96a 75%,#d69a3a);animation:gfade .8s ease}
+  .goku.on{display:flex}
+  @keyframes gfade{from{opacity:0}to{opacity:1}}
+  .goku::before{content:"";position:absolute;inset:-20%;background:repeating-conic-gradient(from 0deg at 50% 34%,rgba(255,255,255,.5) 0 2deg,transparent 2deg 9deg);animation:spin 60s linear infinite;pointer-events:none;opacity:.6}
+  .gbox{position:relative;z-index:2;max-width:760px;width:100%;text-align:center;color:#5a3f14}
+  .gtitle{font-family:var(--serif);font-size:30px;color:#7a4f10;text-shadow:0 2px 0 #fff6d8,0 0 20px rgba(255,220,120,.9);letter-spacing:.1em}
+  .gsub{font-family:var(--serif);font-size:14px;color:#8a6a2a;margin:6px 0 4px}
+  .gkud{font-family:var(--serif);font-size:16px;color:#5a3f14;background:rgba(255,255,255,.55);border:1px solid #d6a94a;border-radius:20px;display:inline-block;padding:5px 18px;margin:8px 0}
+  .gkud b{color:#7a2f1c;font-size:20px}
+  .ghint{font-size:12px;color:#8a6a2a;margin-bottom:12px;line-height:1.7}.ghint b{color:#7a2f1c}
+  .gperks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;max-height:44vh;overflow-y:auto;padding:4px;background:rgba(255,255,255,.35);border-radius:10px;border:1px solid #e0bd72}
+  .gperks::-webkit-scrollbar{width:8px}.gperks::-webkit-scrollbar-thumb{background:#d6a94a;border-radius:8px}
+  .pk{text-align:left;background:linear-gradient(180deg,#fffdf5,#f3e6c8);border:1px solid #c9a55a;border-radius:8px;padding:8px 10px;cursor:pointer;position:relative;transition:filter .1s;box-shadow:0 1px 2px rgba(120,80,20,.2)}
+  .pk:hover{filter:brightness(1.05)} .pk:active{transform:translateY(1px)}
+  .pk.aff{box-shadow:0 0 0 2px rgba(122,79,176,.6)}
+  .pk.no{opacity:.7;cursor:default}
+  .pk.owned{background:linear-gradient(180deg,#e6d8ff,#d0bcf0);border-color:#a889d6}
+  .pk .pn{font-family:var(--serif);font-size:13px;color:#4a2f7a}
+  .pk .pd{font-size:10.5px;color:#6a4a2a;margin-top:2px;line-height:1.45}
+  .pk .pc{position:absolute;top:7px;right:9px;font-family:var(--serif);font-size:12px;color:#7a4fb0}
+  .pk.owned .pc{color:#7a2f1c}
+  .greturn{margin-top:14px;font-family:var(--serif);font-size:16px;padding:11px 40px;border:2px solid #7a4f10;border-radius:8px;background:linear-gradient(180deg,#fff2c8,#e8bf5a);color:#5a3f14;cursor:pointer;box-shadow:0 3px 0 #7a4f10}
+  .greturn:active{transform:translateY(2px);box-shadow:0 1px 0 #7a4f10}
+  .gskip{display:block;margin:8px auto 0;font-size:11px;color:#8a6a2a;background:none;border:none;cursor:pointer;text-decoration:underline}
+
+  footer{max-width:1300px;margin:16px auto 0;padding:10px;border-top:1px solid #4a3521;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  footer .note{font-size:11px;color:#9c8358;line-height:1.6}
+  .reset{background:#3a2a1c;border:1px solid #6b5230;color:#b79b6a;border-radius:5px;font-family:var(--sans);font-size:11px;padding:6px 13px;cursor:pointer}
+  .reset:active{transform:translateY(1px)}
+  @media(prefers-reduced-motion:reduce){.goen,.feverbg::before,#ornHalo,.mokwrap,#bgfx::before,#bgfx::after,#motes,.goku::before,.chillsp{animation:none}.float{animation-duration:.4s}.col-mok.shake{animation:none}}
+</style>
+</head>
+<body>
+  <div id="bgfx"></div><div id="motes"></div>
+  <div class="ticker"><span class="msg" id="ticker">煩悩クリッカー、開店。</span></div>
+  <div class="feverbg" id="feverbg"></div>
+  <div class="toasts" id="toasts"></div>
+  <div class="banner" id="banner">🔔 鐘つきフィーバー！鐘を撞け</div>
+  <div class="banner2" id="frenzyBanner">🔥 連打狂乱！たたく威力が爆上がり</div>
+  <div class="banner3" id="houyouBanner">🪷 大法要！下位の徳が火を噴く</div>
+  <div id="tip"></div>
+
+  <div class="topbar">
+    <div class="brand"><h1>煩悩クリッカー</h1><span class="tag">百鬼夜行</span></div>
+    <div class="meters">
+      <div class="chip"><span class="k">業</span><span class="v" id="mGou">0</span></div>
+      <div class="chip mult"><span class="k">倍率</span><span class="v" id="mMult">×1.00</span></div>
+      <div class="chip kudoku"><span class="k">功徳</span><span class="v" id="mKudoku">0</span></div>
+      <div class="chip sound" id="sound" title="音のオン/オフ">🔔</div>
+    </div>
+  </div>
+
+  <div class="app" id="viewGame">
+    <section class="col-scene card">
+      <div class="scenetabs"><button class="stab on" id="tabGaran">伽藍</button><button class="stab" id="tabInen">因縁</button></div>
+      <div class="sceneBody">
+        <div id="garanView">
+          <div class="midhead">獲得したアイテム<small>買うほど、この世が賑わう ／ 触れると効果が見える</small></div>
+          <div id="scenery"><div class="midempty">まだ何もない。<br>右の「徳を積む」で発生源を買うと、<br>ここに姿が増えていく。</div></div>
+        </div>
+        <div id="inenView" style="display:none"><div class="inpad">
+          <div class="sttitle">因縁（統計）</div>
+          <div class="stgrid">
+            <div class="stcard"><span class="sk">木魚を叩いた数</span><span class="sv" id="stClicks">0</span></div>
+            <div class="stcard"><span class="sk">生産した煩悩（累計）</span><span class="sv" id="stTotal">0</span></div>
+            <div class="stcard"><span class="sk">フィーバー発動回数</span><span class="sv" id="stFever">0</span></div>
+            <div class="stcard"><span class="sk">大法要の回数</span><span class="sv" id="stHouyou">0</span></div>
+            <div class="stcard"><span class="sk">会心を出した回数</span><span class="sv" id="stCrit">0</span></div>
+            <div class="stcard"><span class="sk">転生した回数</span><span class="sv" id="stReb">0</span></div>
+            <div class="stcard"><span class="sk">念仏コンボ最長持続</span><span class="sv" id="stCombo">0.0 秒</span></div>
+          </div>
+          <div class="sttitle">獲得した実績 <span style="font-size:11px;color:#9c8358" id="achCount">0/0</span></div>
+          <div class="achgrid" id="achGrid"></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="col-mok card" id="colMok">
+      <canvas id="rain"></canvas>
+      <div id="chill"></div>
+      <div class="lz">
+        <div class="rank" id="rank">見習い煩悩</div>
+        <div class="count"><span class="n" id="cNum">0</span><span class="u">煩悩</span></div>
+        <div class="persec" id="persec">0 煩悩／秒</div>
+        <div class="momo" id="momo" style="display:none"></div>
+        <div class="combo" id="combo" style="display:none"><span class="ct" id="comboTxt"></span><span class="cbar"><i id="comboBar"></i></span></div>
+        <div class="moktier" id="moktier">素木の木魚</div>
+        <div class="clickzone" id="clickzone">
+          <div class="mokwrap">
+          <svg id="mokSvg" width="300" height="270" viewBox="0 0 250 215">
+            <defs>
+              <radialGradient id="bodyGrad" cx="42%" cy="34%" r="76%"><stop id="g0" offset="0%" stop-color="#d8b98a"/><stop id="g1" offset="44%" stop-color="#b5915f"/><stop id="g2" offset="100%" stop-color="#7d5f36"/></radialGradient>
+              <linearGradient id="woodhi" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".3"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+              <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
+            </defs>
+            <ellipse cx="125" cy="198" rx="96" ry="14" fill="#000" opacity=".32"/>
+            <g id="ornHalo" style="display:none"></g>
+            <g id="ornFlame" style="display:none" fill="#ff7a1a"><path d="M34 150 q-16 -30 4 -54 q-4 24 14 30 q-6 16 8 26 q-16 6 -26 -2z" opacity=".9"/><path d="M216 150 q16 -30 -4 -54 q4 24 -14 30 q6 16 -8 26 q16 6 26 -2z" opacity=".9"/></g>
+            <path d="M40 176 q85 -24 170 0 q-6 20 -20 22 h-130 q-14 -2 -20 -22z" fill="#6b3f86" stroke="#1c140d" stroke-width="3"/>
+            <path d="M52 176 q73 -16 146 0" fill="none" stroke="#9d6ab0" stroke-width="4" opacity=".6"/>
+            <g id="mokBody">
+              <path d="M40 108 q0 -58 60 -70 q30 -6 62 4 q52 16 48 74 q-4 52 -86 52 q-84 0 -84 -60z" fill="url(#bodyGrad)" stroke="#1c140d" stroke-width="4"/>
+              <path d="M60 66 q60 -28 128 4 q-12 -32 -66 -34 q-52 -2 -62 30z" fill="url(#woodhi)"/>
+              <path d="M150 108 q6 -30 -24 -38 q-34 -8 -46 22 q-8 30 22 40 q28 8 40 -14 q8 -18 -12 -26 q-16 -4 -22 12" fill="none" stroke="#3a1c0c" stroke-width="3.5" opacity=".5" stroke-linecap="round"/>
+              <path d="M46 118 q10 -12 22 0 M70 124 q10 -12 22 0 M158 124 q10 -12 22 0 M182 118 q10 -12 22 0" fill="none" stroke="#3a1c0c" stroke-width="2" opacity=".4"/>
+              <path d="M96 92 q-22 -6 -30 10 q-4 14 12 18 q16 2 22 -10 q4 -12 -4 -18z" fill="#7a3f1c" stroke="#1c140d" stroke-width="3"/>
+              <path d="M154 92 q22 -6 30 10 q4 14 -12 18 q-16 2 -22 -10 q-4 -12 4 -18z" fill="#7a3f1c" stroke="#1c140d" stroke-width="3"/>
+              <circle cx="78" cy="100" r="4" fill="#e9c24a"/><circle cx="172" cy="100" r="4" fill="#e9c24a"/>
+              <path id="jewel" d="M125 88 q14 8 0 30 q-14 -22 0 -30z" fill="#c0392b" stroke="#1c140d" stroke-width="2.5"/>
+              <path d="M125 88 q7 6 0 24 q-7 -18 0 -24" fill="#ff8a5a" opacity=".6"/>
+              <path d="M62 140 q63 30 126 0 q-63 18 -126 0z" fill="#1c0e05"/>
+              <path d="M70 138 q55 24 110 0" fill="none" stroke="#000" stroke-width="3" opacity=".6"/>
+            </g>
+            <g id="ornGold" style="display:none"><path d="M40 108 q0 -58 60 -70 q30 -6 62 4 q52 16 48 74 q-4 52 -86 52 q-84 0 -84 -60z" fill="none" stroke="#ffe08a" stroke-width="2.5" opacity=".85"/></g>
+            <g id="ornEye" style="display:none"><ellipse cx="125" cy="108" rx="20" ry="12" fill="#120306"/><ellipse cx="125" cy="108" rx="18" ry="10" fill="#ff2b2b"/><circle cx="125" cy="108" r="5" fill="#120306"/><ellipse cx="125" cy="108" rx="28" ry="17" fill="none" stroke="#ff2b2b" stroke-width="2" opacity=".5" filter="url(#soft)"/></g>
+          </svg>
+          <svg id="bellSvg" width="300" height="270" viewBox="0 0 250 215" style="display:none">
+            <defs><linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f6d98a"/><stop offset="45%" stop-color="#c99a3a"/><stop offset="100%" stop-color="#7a5416"/></linearGradient></defs>
+            <ellipse cx="125" cy="198" rx="70" ry="12" fill="#000" opacity=".3"/>
+            <g id="shumoku"><rect x="6" y="126" width="72" height="12" rx="6" fill="#8a5a2f" stroke="#1c140d" stroke-width="3"/><circle cx="80" cy="132" r="13" fill="#c98a4a" stroke="#1c140d" stroke-width="3"/></g>
+            <g id="bellBody"><line x1="125" y1="16" x2="125" y2="36" stroke="#1c140d" stroke-width="4"/><path d="M112 22 q13 -14 26 0 q6 8 -13 12 q-19 -4 -13 -12z" fill="url(#bronze)" stroke="#1c140d" stroke-width="3"/><path d="M74 62 q0 -26 51 -26 q51 0 51 26 v66 q0 20 -20 20 h-62 q-20 0 -20 -20z" fill="url(#bronze)" stroke="#1c140d" stroke-width="4"/><path d="M70 148 q55 22 110 0 q0 16 -14 16 h-82 q-14 0 -14 -16z" fill="#a9791f" stroke="#1c140d" stroke-width="4"/><path d="M84 76 h82 M84 98 h82 M84 120 h82" stroke="#6a4611" stroke-width="2.5" opacity=".6"/><g fill="#8a5f18"><circle cx="96" cy="68" r="3"/><circle cx="125" cy="66" r="3"/><circle cx="154" cy="68" r="3"/></g><circle cx="125" cy="152" r="6" fill="#6a4611"/></g>
+          </svg>
+          </div>
+        </div>
+        <div class="tap" id="tapLabel">た　た　く<small>※ リズム良く叩くと念仏が流れ、ボーナス</small></div>
+        <div class="aperks" id="activePerks" style="display:none"></div>
+        <button class="rebirth" id="rebirth"></button>
+      </div>
+    </section>
+
+    <section class="col-shop card">
+      <div class="rscroll">
+        <div class="shead">学び<span class="sc" id="upCount">取得 0</span></div>
+        <div class="sect"><p class="hint">一度きりの学び。効果は<b>ずっと続く</b>。条件を満たすと現れる。</p><div id="upList"></div>
+          <div class="bld up locked hide" id="upTeaser"><span class="icon">？</span><span class="body"><span class="name">？？？</span><span class="rate">条件を満たすと新たな学びが現れる</span></span><span class="right"><span class="cost">？？？</span></span></div>
+        </div>
+        <div class="shead">徳を積む<span class="sc">発生源を買って煩悩/秒を増やす</span></div>
+        <div class="buybar">個数<button class="qbtn on" data-q="1">1</button><button class="qbtn" data-q="10">10</button><button class="qbtn" data-q="100">100</button><button class="qbtn" data-q="max">全部</button></div>
+        <div class="sect" id="panelB"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="goku" id="gokuraku"><div class="gbox">
+    <div class="gtitle">極楽浄土</div>
+    <div class="gsub">——あなたは一度、天に召された。</div>
+    <div class="gkud">使える功徳　<b id="gokKud">0</b></div>
+    <div class="ghint">功徳を納めて<b>特典</b>を授かる。特典はこの画面で<b>いつでも解除して功徳を戻せる</b>。<br>今回は選ばず、より大きな功徳のために貯めておくのもよい。</div>
+    <div class="gperks" id="perkList"></div>
+    <button class="greturn" id="gReturn">現世に還る</button>
+    <button class="gskip" id="gSkip">今回は選ばず、功徳を貯めて還る</button>
+  </div></div>
+
+  <footer>
+    <div class="note">終わりはない。ただ煩悩が積もるだけ。<br>木魚は累計 1万／1億／100億／1兆 で姿を変える。</div>
+    <button class="reset" id="reset">最初から（記録を消す）</button>
+  </footer>
+
+  <div class="modal" id="modal"><div class="mbox"><div class="mmsg" id="mmsg"></div><div class="mbtns"><button class="mbtn yes" id="mYes">はい</button><button class="mbtn no" id="mNo">やめる</button></div></div></div>
+
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id);
+  const now=()=>Date.now();
+
+  const PAL={'.':null,K:'#1c140d',w:'#ffffff',c:'#f6e7c4',y:'#ffd24a',e:'#ffe08a',o:'#e8912f',f:'#ff7a1a',r:'#c0392b',R:'#7a2f1c',g:'#3fae3f',G:'#1f6f2f',b:'#6f9ad6',B:'#365a86',p:'#a06fd0',P:'#5a3f86',n:'#b07a3a',N:'#5c3a1c',s:'#c8c8d0',S:'#6a6a72',m:'#c85e86',t:'#d8b98a'};
+  const GRID={
+    coin:["....KKKK....","..KKyyyyKK..",".KyyeeyyyyK.",".KyeeyyyyyK.","KyeyyyyyyyyK","KyyyyyyyyyyK","KyyyyyyyyyyK",".KyyyyyyyyK.",".KyyyyyyyyK.","..KKyyyyKK..","....KKKK....","............"],
+    bag:[".....KK.....","....KccK....","...KcccK....","...KKKKK....","..KnnnnnK...",".KnnyyynnK..","KnnyKKKynnK.","KnnyyyyynnK.","KnnnnnnnnnK.",".KnnnnnnnK..","..KKKKKKK...","............"],
+    bill:["............",".KKKKKKKKKK.",".KggggggggK.",".KgcgccgcgK.",".KgccyyccgK.",".KgcyKKycgK.",".KgccyyccgK.",".KgcgccgcgK.",".KggggggggK.",".KKKKKKKKKK.","..cccccccc..","...cccccc..."],
+    rice:["............","...wwwwww...","..wwwwwwww..",".wwwwwwwwww.",".cKcccccKc..","KccccccccccK",".KccccccccK.",".KbcccccbK..","..KccccccK..","...KKKKKK...","............","............"],
+    ramen:["............","...yyyyyy...","..yoyoyoyo..","KrrrrrrrrrrK",".KrrrrrrrrK.",".KrwwwwwwrK.",".KrccccccrK.",".KrccccccrK.","..KrrrrrrK..","...KKKKKK...","............","............"],
+    futon:["............","............",".KKKKKKKKKK.",".KbbbbbbbbK.",".KccccccccK.",".KbbbbbbbbK.",".KccccccccK.",".KbbbbbbbbK.",".KKKKKKKKKK.","..K......K..","............","............"],
+    gem:["....KKKK....","..KKbwbbKK..",".KbbwbbbbbK.","KbbbbbbbbbbK",".KbbbbbbbbK.","..KbbbbbbK..","...KbbbbK...","....KbbK....",".....KK.....","............","............","............"],
+    sake:[".....KK.....","....KwwK....","....KwwK....","...KwwwwK...","..KwbbbbwK..","..KwbccbwK..","..KwbccbwK..","..KwbbbbwK..","..KwwwwwwK..","..KwwwwwwK..","...KKKKKK...","............"],
+    gassho:[".....KK.....","....KccK....","....cccc....","...KccccK...","...nKccKn...","..nnKccKnn..","..nnKccKnn..","..nnKccKnn..","..nnnKKnnn..","..nnnnnnnn..","..KnnnnnnK..","...KKKKKK.."],
+    omamori:[".....KK.....","....KeeK....","...KeKKeK...","...KppppK...","..KpppppppK.","..KpeyyepK..","..KpeyyyepK.","..KppppppppK","..KppppppppK","...KpppppK..","...KKKKKK...","....KeeK...."],
+    juzu:["....nnnn....","..nnKKKKnn..",".nKn....nKn.",".nK......Kn.","nKn......nKn","nK........Kn","nKn......nKn",".nK......Kn.",".nKn....nKn.","..nnKKKKnn..","....nnnn....",".....yy....."],
+    nenbutsu:["............",".NKKKKKKKKN.",".NccccccccN.",".NcKcKcKccN.",".NccccccccN.",".NcKKcKKccN.",".NccccccccN.",".NcKcKKcKcN.",".NccccccccN.",".NccccccccN.",".NKKKKKKKKN.","............"],
+    gaki:["...G....G...","..GGGGGGGG..",".GGwwGGwwGG.",".GGwKGGwKGG.",".GGGGGGGGGG.",".GGGGrrGGGG.","..GrrrrrrG..","..GrwwwwrG..","..GrwKKwrG..","..GGrrrrGG..","...GGGGGG...","....GGGG...."],
+    enma:["..KKKKKKKK..",".KKyKKKKyKK.","..rrrrrrrr..",".rrrrrrrrrr.",".rKKrrrrKKr.",".rwwrrrrwwr.",".rrKrrrrKrr.",".rrrrKKrrrr.",".rKwwwwwwKr.",".rrKwwwwKrr.","..rrrrrrrr..","...rrKKrr..."],
+    jigoku:["....f.......","...ff..f....","..fof.fof...","..fofofof...",".fooffooof..",".foyooyooff.",".foyyoyyoof.",".fyyyyyyyyf.","..fyyyyyyf..","..ffyyyyff..","...ffffff...","....ffff...."],
+    mandara:["....KKKK....","..KKyyyyKK..",".KyrrrrrryK.",".KyrbbbbryK.","KyrbeeeebryK","KyrbeyyebryK","KyrbeyyebryK","KyrbeeeebryK",".KyrbbbbryK.",".KyrrrrrryK.","..KKyyyyKK..","....KKKK...."],
+    nehan:[".....KK.....","....KwwK....","...KwwwwK...","..KwmwwmwK..",".KwmwwwwmwK.",".KmwwwwwwmK.",".KwmwwwwmwK.","..KwwwwwwK..","...KwwwwK...","....KKKK....","..bBbBbBbB..",".BbBbBbBbBb."],
+    rinne:["....KKKK....","..KKeeeeKK..",".KeyyKKyyeK.",".KyyKyyKyyK.","KeyKyKKyKyeK","KyKKyKKyKKyK","KeyKyKKyKyeK",".KyyKyyKyyK.",".KeyyKKyyeK.","..KKeeeeKK..","....KKKK....","............"],
+    shumisen:["............",".....ww.....","....wwww....","...PwwwwP...","..PPssSSPP..",".PPsssssSPP.",".PsssssssSP.","PPPsssssPPPP",".PPPPPPPPPP.",".KKKKKKKKKK.","............","............"],
+    catSleep:["............","...K....K...","..KtK..KtK..","..KttKKttK..",".KttttttttK.",".KtKttttKtK.",".KtttmttttK.",".KttttttttK.",".KttttttttK.","..KKttttKK..","...KKKKKK...","............"],
+    catLoaf:["............","..K......K..","..KsK..KsK..","..KssssssssK",".KssssssssK.",".KsKsssssKsK",".KsssmssssK.",".KssssssssK.",".KssssssssK.",".KssssssssK.",".KKKKKKKKKK.","............"],
+    catStretch:["............","............",".K........K.","KcKKKKKKKcK.","KccccccccccK",".KccKcccKccK",".KcccmccccK.","..KccccccK..","...KKKKKKK..","..K.....K...","............","............"],
+    zabuton:["............","............",".KKKKKKKKKK.",".KppppppppK.",".KpeeeeeepK.",".KppppppppK.",".KppppppppK.",".KKKKKKKKKK.","..KK....KK..","............","............","............"],
+    teacup:["............","....c.c.....","...c.c.c....","....c.c.....","..KKKKKKK...","..KtttttK...","..KtttttKK..","..KtttttKK..","..KKKKKKK...","...KKKKK....","............","............"],
+    dango:[".....K......",".....K......","...cccc.....","..ccccccc...","...ccccc....","..ggggggg...","...ggggg....","..mmmmmmm...","...mmmmm....",".....K......",".....K......","............"],
+    catBelly:["............","..K.K..K.K..","..KcK..KcK..",".KccKKKKccK.",".KcccccccccK",".KcKKccKKccK",".KcccccccccK",".KccccccccK.","..KKtttKK...","...KtKtK....","....KKKK....","............"],
+    bozu:["............","....KKKK....","...KttttK...","..KtttttK...","..KtKttKtK..","..KttttttK..","...KttttK...",".KRRRRRRRRK.",".KRRoooRRRK.",".KRRRRRRRRK.","..KKKKKKKK..","............"],
+    tanuki:["....KK......","...KttttK...","..KnnnnnnK..","...KttttK...","..KwKKwtK...","...KtmtK....","..KnnnnnnK..",".KnncccnnK..",".KnccccnnK..",".KnnnnnnnK..","...Ke..eK...","............"],
+    dango2:["............","............","....ccc.....","...ccccc....","....mmm.....","...mmmmm....","....ggg.....","...ggggg....","..KKKKKKK...",".KbbbbbbbK..","..KKKKKKK...","............"],
+    oshou:["............","...KKKKKK...","..KttttttK..","..KtKttKtK..","..KttmmttK..","..KttttttK..",".KooooooooK.","KooRRRRRRooK","KoRRRRRRRRoK","KoRRRRRRRRoK",".KKKKKKKKKK.","............"],
+    koTanuki:["............","............","...KK..KK...","..KnnnnnnK..",".KnnnnnnnnK.",".KntnnnntnK.",".KncccccnK..",".KnnnnnnnK..",".KnnnnnnnK..","..KnnKnnK...","...KKKKKK...","............"],
+    jizo:["............","....KKKK....","...KssssK...","..KssssssK..","..KsKssKsK..","..KssmmssK..","..KssssssK..",".KrrrrrrrrK.",".KsrrrrrrsK.",".KssssssssK.","..KKKKKKKK..","............"],
+  };
+  function makeSprite(rows){const S=12,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');rows.forEach((row,y)=>{for(let x=0;x<row.length&&x<S;x++){const col=PAL[row[x]];if(col){g.fillStyle=col;g.fillRect(x,y,1,1);}}});return cv;}
+  function makeSil(rows){const S=12,cv=document.createElement('canvas');cv.width=cv.height=S;const g=cv.getContext('2d');g.fillStyle="rgba(28,20,12,.82)";rows.forEach((row,y)=>{for(let x=0;x<row.length&&x<S;x++){if(PAL[row[x]])g.fillRect(x,y,1,1);}});return cv;}
+  const SPRITE_URL={},SPRITE_SIL={},ITEM_SPRITES=[],CHILL_URL={};
+  const BMAP={gassho:"gassho",saisen:"coin",omamori:"omamori",juzu:"juzu",nenbutsu:"nenbutsu",gaki:"gaki",enma:"enma",jigoku:"jigoku",mandara:"mandara",nehan:"nehan",rinne:"rinne",shumisen:"shumisen"};
+  const CHILLKEYS=["catSleep","catLoaf","catStretch","zabuton","teacup","dango","catBelly","bozu","tanuki","dango2","oshou","koTanuki","jizo"];
+  function buildSprites(){["coin","bag","bill","rice","ramen","futon","gem","sake"].forEach(k=>ITEM_SPRITES.push(makeSprite(GRID[k])));for(const id in BMAP){SPRITE_URL[id]=makeSprite(GRID[BMAP[id]]).toDataURL();SPRITE_SIL[id]=makeSil(GRID[BMAP[id]]).toDataURL();}CHILLKEYS.forEach(k=>CHILL_URL[k]=makeSprite(GRID[k]).toDataURL());}
+
+  const BUILDINGS=[
+    {id:"gassho",name:"合掌",base:15,cps:0.3,band:"#6b5aa0"},
+    {id:"saisen",name:"賽銭",base:110,cps:1.6,band:"#a8863f"},
+    {id:"omamori",name:"お守り",base:1200,cps:22,band:"#b5473a"},
+    {id:"juzu",name:"数珠",base:14000,cps:280,band:"#7a5a30"},
+    {id:"nenbutsu",name:"念仏",base:260000,cps:3400,band:"#4a6b8a"},
+    {id:"gaki",name:"餓鬼",base:8000000,cps:42000,band:"#7a3550"},
+    {id:"enma",name:"閻魔",base:1.4e8,cps:560000,band:"#8a3a2a"},
+    {id:"jigoku",name:"地獄",base:3.5e9,cps:8.6e6,band:"#3a2a5a"},
+    {id:"mandara",name:"曼荼羅",base:8e10,cps:1.5e8,band:"#b58a2a"},
+    {id:"nehan",name:"涅槃",base:1.5e12,cps:2.6e9,band:"#3f7a5a"},
+    {id:"rinne",name:"輪廻",base:3e13,cps:5.4e10,band:"#9a7a2a"},
+    {id:"shumisen",name:"須弥山",base:6e14,cps:1.1e12,band:"#5a4a86"},
+  ];
+  const LOWIDS=["gassho","saisen","omamori","juzu"];
+  const RANKS=[[0,"見習い煩悩"],[300,"俗物"],[12000,"生臭坊主"],[400000,"煩悩の達人"],[2e7,"大欲魔"],[1e9,"百八の主"],[6e10,"煩悩大権現"],[3e12,"生き仏（大嘘）"],[1e15,"煩悩の化身"]];
+  const UP=[
+    {id:"cl1",n:"鉛の撞木",d:"たたく威力 ×2",cost:400,cond:s=>s.total>=200,eff:{t:"click",m:2}},
+    {id:"ug1",n:"合掌を組む",d:"合掌の生産 ×2",cost:180,cond:s=>s.own.gassho>=10,eff:{t:"bld",id:"gassho",m:2}},
+    {id:"us1",n:"賽銭を増やす",d:"賽銭 ×2",cost:1400,cond:s=>s.own.saisen>=10,eff:{t:"bld",id:"saisen",m:2}},
+    {id:"cl2",n:"金の撞木",d:"たたく威力 ×2",cost:18000,cond:s=>s.clicks>=100,eff:{t:"click",m:2}},
+    {id:"uo1",n:"霊験あらたか",d:"お守り ×2",cost:16000,cond:s=>s.own.omamori>=10,eff:{t:"bld",id:"omamori",m:2}},
+    {id:"clc",n:"指先の悟り",d:"たたく威力に 煩悩/秒 の1%を加算",cost:120000,cond:s=>s.total>=60000,eff:{t:"clickcps",m:0.01}},
+    {id:"uj1",n:"珠を繰る",d:"数珠 ×2",cost:190000,cond:s=>s.own.juzu>=10,eff:{t:"bld",id:"juzu",m:2}},
+    {id:"gl1",n:"百八の功徳",d:"すべての生産 ×2",cost:900000,cond:s=>s.total>=250000,eff:{t:"global",m:2}},
+    {id:"fv1",n:"長き鐘の音",d:"フィーバー +8秒",cost:250000,cond:s=>s.feversDone>=1,eff:{t:"feverdur",m:8}},
+    {id:"rh1",n:"読経の心得",d:"念仏コンボの伸びが良くなる",cost:300000,cond:s=>s.maxCombo>=10,eff:{t:"combo",m:0.012}},
+    {id:"crit1",n:"会心の見切り",d:"会心（クリティカル）率 +5%",cost:5000000,cond:s=>s.clicks>=1500,eff:{t:"crit",m:0.05}},
+    {id:"un1",n:"念を込める",d:"念仏 ×2",cost:3000000,cond:s=>s.own.nenbutsu>=10,eff:{t:"bld",id:"nenbutsu",m:2}},
+    {id:"go1",n:"深き業",d:"業の効果を強化",cost:400000,cond:s=>s.gou>=12,eff:{t:"gou",m:0.05}},
+    {id:"ret1",n:"留守の功徳",d:"留守中の生産効率が上がる",cost:1e8,cond:s=>s.rebirths>=1,eff:{t:"offline",m:0.2}},
+    {id:"syn1",n:"衆生無辺",d:"下位（合掌・賽銭・お守り・数珠）の総数 ×0.05% を全体倍率に加算",cost:2e8,cond:s=>s.total>=1e8,eff:{t:"synergy",m:0.0005}},
+    {id:"cl3",n:"阿修羅の腕",d:"たたく威力 ×2",cost:4000000,cond:s=>s.clicks>=800,eff:{t:"click",m:2}},
+    {id:"fv2",n:"御縁を招く",d:"御縁玉の出現が早まる",cost:1500000,cond:s=>s.feversDone>=3,eff:{t:"feverfreq",m:0.8}},
+    {id:"ug2",n:"飢えを煽る",d:"餓鬼 ×2",cost:9e7,cond:s=>s.own.gaki>=10,eff:{t:"bld",id:"gaki",m:2}},
+    {id:"gold1",n:"招福の作法",d:"御縁玉（幸運・連打）の効果 +50%",cost:5e8,cond:s=>s.feversDone>=6,eff:{t:"goldpow",m:0.5}},
+    {id:"fv3",n:"梵鐘の共鳴",d:"フィーバー倍率 +5",cost:12000000,cond:s=>s.feversDone>=5,eff:{t:"fevermul",m:5}},
+    {id:"crit2",n:"一撃の妙",d:"会心の倍率 +6",cost:2e8,cond:s=>s.clicks>=6000,eff:{t:"critmul",m:6}},
+    {id:"hy1",n:"大法要の作法",d:"大法要（御縁玉）の火力が上がる",cost:8e9,cond:s=>s.houyous>=3,eff:{t:"houyoup",m:0.04}},
+    {id:"gl2",n:"曼荼羅の加護",d:"すべての生産 ×2",cost:1e9,cond:s=>s.total>=3e7,eff:{t:"global",m:2}},
+    {id:"ue1",n:"帳を増やす",d:"閻魔 ×2",cost:2e9,cond:s=>s.own.enma>=10,eff:{t:"bld",id:"enma",m:2}},
+    {id:"uk1",n:"地獄の釜",d:"地獄 ×2",cost:5e10,cond:s=>s.own.jigoku>=10,eff:{t:"bld",id:"jigoku",m:2}},
+    {id:"syn2",n:"済度の大願",d:"下位の総数ぶん、全体倍率が更に上がる",cost:1e12,cond:s=>s.total>=5e11,eff:{t:"synergy",m:0.001}},
+    {id:"um1",n:"曼荼羅を描く",d:"曼荼羅 ×2",cost:1e12,cond:s=>s.own.mandara>=10,eff:{t:"bld",id:"mandara",m:2}},
+    {id:"gl3",n:"三千大千の理",d:"すべての生産 ×2",cost:8e12,cond:s=>s.total>=5e11,eff:{t:"global",m:2}},
+    {id:"une",n:"涅槃寂静",d:"涅槃 ×2",cost:2e13,cond:s=>s.own.nehan>=10,eff:{t:"bld",id:"nehan",m:2}},
+    {id:"cl4",n:"銀の撞木",d:"たたく威力 ×2",cost:2.4e7,cond:s=>s.clicks>=2000,eff:{t:"click",m:2}},
+    {id:"cl5",n:"金剛杵",d:"たたく威力 ×2",cost:3e8,cond:s=>s.clicks>=5000,eff:{t:"click",m:2}},
+    {id:"cl6",n:"千手の見",d:"たたく威力 ×2",cost:4e9,cond:s=>s.clicks>=12000,eff:{t:"click",m:2}},
+    {id:"clc2",n:"如意の指",d:"たたく威力に 煩悩/秒 の2%を加算",cost:8e6,cond:s=>s.total>=5e6,eff:{t:"clickcps",m:0.02}},
+    {id:"uo2",n:"御守の束",d:"お守り ×2",cost:4e6,cond:s=>s.own.omamori>=25,eff:{t:"bld",id:"omamori",m:2}},
+    {id:"uj2",n:"珠を連ねる",d:"数珠 ×2",cost:5e7,cond:s=>s.own.juzu>=25,eff:{t:"bld",id:"juzu",m:2}},
+    {id:"un2",n:"念を重ねる",d:"念仏 ×2",cost:8e8,cond:s=>s.own.nenbutsu>=25,eff:{t:"bld",id:"nenbutsu",m:2}},
+    {id:"ug3",n:"飢餓の淵",d:"餓鬼 ×2",cost:1.6e10,cond:s=>s.own.gaki>=25,eff:{t:"bld",id:"gaki",m:2}},
+    {id:"ue2",n:"大帳簿",d:"閻魔 ×2",cost:2.6e11,cond:s=>s.own.enma>=25,eff:{t:"bld",id:"enma",m:2}},
+    {id:"rh2",n:"声明の妙",d:"念仏コンボの伸びが更に良く",cost:3e7,cond:s=>s.maxCombo>=30,eff:{t:"combo",m:0.015}},
+    {id:"rh3",n:"声明の奥義",d:"念仏コンボ上限 +25",cost:5e8,cond:s=>s.maxCombo>=50,eff:{t:"combomax",m:25}},
+    {id:"fv4",n:"御縁の綱",d:"御縁玉の出現が更に早まる",cost:2e8,cond:s=>s.feversDone>=8,eff:{t:"feverfreq",m:0.85}},
+    {id:"fv5",n:"梵鐘の轟き",d:"フィーバー倍率 +8",cost:9e8,cond:s=>s.feversDone>=12,eff:{t:"fevermul",m:8}},
+    {id:"fv6",n:"大梵鐘",d:"フィーバー倍率 +12",cost:6e9,cond:s=>s.feversDone>=18,eff:{t:"fevermul",m:12}},
+    {id:"go2",n:"業の深化",d:"業の効果を更に強化",cost:2e8,cond:s=>s.gou>=30,eff:{t:"gou",m:0.075}},
+    {id:"hy2",n:"大曼荼羅供養",d:"大法要の火力が更に上がる",cost:2e12,cond:s=>s.houyous>=8,eff:{t:"houyoup",m:0.06}},
+    {id:"um2",n:"曼荼羅を悟る",d:"曼荼羅 ×2",cost:5e12,cond:s=>s.own.mandara>=25,eff:{t:"bld",id:"mandara",m:2}},
+    {id:"gl4",n:"須弥の理",d:"すべての生産 ×2",cost:5e13,cond:s=>s.total>=3e12,eff:{t:"global",m:2}},
+    {id:"ur1",n:"六道の輪",d:"輪廻 ×2",cost:3e14,cond:s=>s.own.rinne>=10,eff:{t:"bld",id:"rinne",m:2}},
+  ];
+  function grp(u,ids,m){ids.forEach(id=>u.bld[id]*=m);}
+  const LOWB=["gassho","saisen","omamori","juzu"],MIDB=["nenbutsu","gaki","enma"],HIGHB=["jigoku","mandara","nehan","rinne","shumisen"];
+  const PERKS=[
+    {id:"p01",n:"宿世の勢い",d:"転生直後ブースト ×+3・+8秒",cost:1,eff:u=>{u.momoPeakAdd+=3;u.momoDurAdd+=8;}},
+    {id:"p02",n:"金の指",d:"たたく威力 ×2（永続）",cost:1,eff:u=>{u.clickMul*=2;}},
+    {id:"p03",n:"功徳の余薫",d:"すべての生産 +8%",cost:1,eff:u=>{u.permMul*=1.08;}},
+    {id:"p04",n:"福を招く",d:"御縁玉が出やすく・フィーバー+4秒",cost:2,eff:u=>{u.feverFreqMul*=0.85;u.feverDurAdd+=4;}},
+    {id:"p05",n:"声明の心得",d:"念仏コンボ上限+15・伸び強化",cost:2,eff:u=>{u.comboMax+=15;u.comboStep+=0.01;}},
+    {id:"p06",n:"授かり",d:"転生後、前回到達の1.5%を所持",cost:2,eff:u=>{u.startBonnoFrac+=0.015;}},
+    {id:"p07",n:"半額の縁",d:"発生源の価格 −8%",cost:3,eff:u=>{u.priceMul*=0.92;}},
+    {id:"p08",n:"二重の功徳",d:"すべての生産 +12%",cost:3,eff:u=>{u.permMul*=1.12;}},
+    {id:"p09",n:"千手の指",d:"たたく威力 ×2",cost:3,eff:u=>{u.clickMul*=2;}},
+    {id:"p10",n:"下位の縁",d:"下位シナジーを強化（総数×+0.05%）",cost:4,eff:u=>{u.lowSynergy+=0.0005;}},
+    {id:"p11",n:"会心の悟り",d:"会心率 +6%",cost:4,eff:u=>{u.critChance+=0.06;}},
+    {id:"p12",n:"下位の底上げ",d:"合掌〜数珠 ×3",cost:4,eff:u=>grp(u,LOWB,3)},
+    {id:"p13",n:"三千の薫染",d:"すべての生産 +15%",cost:5,eff:u=>{u.permMul*=1.15;}},
+    {id:"p14",n:"大願の勢い",d:"転生ブースト ×+3・+10秒",cost:5,eff:u=>{u.momoPeakAdd+=3;u.momoDurAdd+=10;}},
+    {id:"p15",n:"中位の隆盛",d:"念仏〜閻魔 ×3",cost:5,eff:u=>grp(u,MIDB,3)},
+    {id:"p16",n:"阿修羅の指",d:"たたく威力 ×3",cost:6,eff:u=>{u.clickMul*=3;}},
+    {id:"p17",n:"利殖の悟り",d:"功徳1つの永続倍率 +2%",cost:6,eff:u=>{u.kudokuVal+=0.02;}},
+    {id:"p18",n:"大法要の縁",d:"大法要の火力 +0.06・御縁玉の効果+40%",cost:6,eff:u=>{u.houyouPer+=0.06;u.goldPow+=0.4;}},
+    {id:"p19",n:"四智の光",d:"すべての生産 +20%",cost:7,eff:u=>{u.permMul*=1.20;}},
+    {id:"p20",n:"上位の威",d:"地獄以上 ×3",cost:7,eff:u=>grp(u,HIGHB,3)},
+    {id:"p21",n:"声明の達者",d:"念仏コンボ上限+20・伸び強化",cost:7,eff:u=>{u.comboMax+=20;u.comboStep+=0.015;}},
+    {id:"p22",n:"梵鐘の主",d:"フィーバー +6秒・倍率+10",cost:8,eff:u=>{u.feverDurAdd+=6;u.feverMulAdd+=10;}},
+    {id:"p23",n:"五蘊の転成",d:"すべての生産 +25%",cost:8,eff:u=>{u.permMul*=1.25;}},
+    {id:"p24",n:"帝釈の指",d:"たたく威力 ×3・会心倍率+5",cost:9,eff:u=>{u.clickMul*=3;u.critMul+=5;}},
+    {id:"p25",n:"衆生済度",d:"下位シナジーを大きく強化（総数×+0.15%）",cost:9,eff:u=>{u.lowSynergy+=0.0015;}},
+    {id:"p26",n:"大持ち越し",d:"転生後、各発生源を15個所持",cost:10,eff:u=>{u.startOwn=Math.max(u.startOwn,15);}},
+    {id:"p27",n:"六度万行",d:"すべての生産 +30%",cost:11,eff:u=>{u.permMul*=1.30;}},
+    {id:"p28",n:"大利殖",d:"功徳の永続倍率 +3%",cost:12,eff:u=>{u.kudokuVal+=0.03;}},
+    {id:"p29",n:"一切成就",d:"すべての生産 ×1.8",cost:13,eff:u=>{u.permMul*=1.8;}},
+    {id:"p30",n:"涅槃寂静",d:"すべての生産 ×1.8・たたく威力 ×2",cost:14,eff:u=>{u.permMul*=1.8;u.clickMul*=2;}},
+  ];
+  const ACH=[
+    {id:"p1",n:"煩悩の芽",d:"煩悩を50ためる",k:1,c:s=>s.total>=50},{id:"c1",n:"木魚見習い",d:"5回たたく",k:1,c:s=>s.clicks>=5},
+    {id:"g1",n:"合掌",d:"合掌を1つ得る",k:1,c:s=>s.own.gassho>=1},{id:"p2",n:"塵も積もれば",d:"煩悩を500ためる",k:1,c:s=>s.total>=500},
+    {id:"sa1",n:"お賽銭",d:"賽銭を1つ得る",k:1,c:s=>s.own.saisen>=1},{id:"c2",n:"除夜の鐘",d:"108回たたく",k:2,c:s=>s.clicks>=108},
+    {id:"up1",n:"はじめての学び",d:"学びを1つ得る",k:1,c:s=>upgCount()>=1},{id:"p3",n:"煩悩まみれ",d:"煩悩を5,000ためる",k:1,c:s=>s.total>=5000},
+    {id:"om1",n:"すがる心",d:"お守りを1つ得る",k:1,c:s=>s.own.omamori>=1},{id:"f1",n:"御縁",d:"御縁玉でフィーバー発動",k:2,c:s=>s.feversDone>=1},
+    {id:"cr1",n:"会心",d:"会心を1回出す",k:2,c:s=>s.crits>=1},{id:"rh",n:"読経",d:"念仏コンボを20つなぐ",k:2,c:s=>s.maxCombo>=20},
+    {id:"p4",n:"煩悩沼",d:"煩悩を50,000ためる",k:2,c:s=>s.total>=50000},
+    {id:"mk1",n:"漆塗り",d:"木魚が漆塗りに変化",k:2,c:s=>s.total>=1e4},{id:"ju1",n:"百八の珠",d:"数珠を1つ得る",k:1,c:s=>s.own.juzu>=1},
+    {id:"r1",n:"初転生",d:"はじめて転生する",k:3,c:s=>s.rebirths>=1},{id:"p5",n:"一切皆苦",d:"煩悩を500,000ためる",k:3,c:s=>s.total>=500000},
+    {id:"ga1",n:"餓えの化身",d:"餓鬼を1つ得る",k:3,c:s=>s.own.gaki>=1},{id:"k15",n:"業が深い",d:"業を15ためる",k:2,c:s=>s.gou>=15},
+    {id:"s2",n:"煩悩無限機関",d:"煩悩／秒を5,000にする",k:3,c:s=>s.cps>=5000},{id:"up5",n:"蒐集癖",d:"学びを10得る",k:2,c:s=>upgCount()>=10},
+    {id:"f10",n:"鐘の主",d:"フィーバーを10回発動",k:3,c:s=>s.feversDone>=10},{id:"kd5",n:"功徳者",d:"功徳を5ためる",k:3,c:s=>s.kudoku>=5},
+    {id:"luk",n:"果報者",d:"幸運の御縁玉を掴む",k:3,c:s=>s.luckies>=1},{id:"frz",n:"連打狂乱",d:"連打の御縁玉を掴む",k:3,c:s=>s.frenzies>=1},
+    {id:"hy",n:"大法要",d:"大法要の御縁玉を掴む",k:4,c:s=>s.houyous>=1},{id:"low",n:"衆生済度",d:"下位発生源を合計200所持",k:4,c:s=>LOWIDS.reduce((a,i)=>a+s.own[i],0)>=200},
+    {id:"pk1",n:"悟りの一歩",d:"転生特典を1つ授かる",k:2,c:s=>Object.keys(s.perks).length>=1},{id:"pk10",n:"悟りの蒐集",d:"転生特典を10授かる",k:5,c:s=>Object.keys(s.perks).length>=10},
+    {id:"jg",n:"地獄めぐり",d:"地獄を1つ得る",k:4,c:s=>s.own.jigoku>=1},{id:"mk3",n:"百鬼の器",d:"木魚が百鬼に変化",k:5,c:s=>s.total>=1e10},
+    {id:"full",n:"煩悩フルコース",d:"全ての発生源を1つ以上",k:6,c:s=>BUILDINGS.every(b=>s.own[b.id]>=1)},
+    {id:"p6",n:"世を煩悩に沈める",d:"煩悩を100,000,000ためる",k:8,c:s=>s.total>=1e8},{id:"mk4",n:"曼荼羅の相",d:"木魚が曼荼羅に変化",k:10,c:s=>s.total>=1e12},
+    {id:"neh",n:"彼岸へ",d:"涅槃を1つ得る",k:8,c:s=>s.own.nehan>=1},{id:"sm",n:"須弥の頂",d:"須弥山を1つ得る",k:12,c:s=>s.own.shumisen>=1},
+    {id:"r5",n:"輪廻の輪",d:"5回転生する",k:6,c:s=>s.rebirths>=5},{id:"r15",n:"六道を巡る",d:"15回転生する",k:9,c:s=>s.rebirths>=15},
+    {id:"cm",n:"止まらぬ読経",d:"念仏コンボを10秒つなぐ",k:4,c:s=>s.maxComboMs>=10000},{id:"meta",n:"煩悩に何時間使ってんの",d:"10,000回たたく",k:0,c:s=>s.clicks>=10000},
+  ];
+  const HEART=["色即是空","空即是色","般若波羅蜜","照見五蘊皆空","羯諦羯諦","波羅羯諦","不生不滅","遠離顛倒夢想","心無罣礙","菩提薩埵"];
+  const MOKTIERS=[
+    {min:0,name:"素木の木魚",body:["#d8b98a","#b5915f","#7d5f36"],jewel:"#a23327",gold:0,flame:0,eye:0,halo:0,glow:""},
+    {min:1e4,name:"漆塗りの木魚",body:["#c9743f","#9c4e28","#5c2f16"],jewel:"#e34b2c",gold:0,flame:0,eye:0,halo:0,glow:"drop-shadow(0 4px 6px rgba(0,0,0,.5))"},
+    {min:1e8,name:"金装の木魚",body:["#f0d27a","#cd9a34","#7a5416"],jewel:"#ff5a2c",gold:1,flame:0,eye:0,halo:0,glow:"drop-shadow(0 0 10px rgba(255,215,120,.6))"},
+    {min:1e10,name:"百鬼の木魚",body:["#8a3a58","#4a1f33","#1c0e1a"],jewel:"#ff2b2b",gold:1,flame:1,eye:1,halo:0,glow:"drop-shadow(0 0 16px rgba(210,40,70,.65))"},
+    {min:1e12,name:"曼荼羅の木魚",body:["#ffe9a8","#e6b84a","#9a6b1a"],jewel:"#ff3b3b",gold:1,flame:1,eye:1,halo:1,glow:"drop-shadow(0 0 22px rgba(255,215,120,.9))"},
+  ];
+  const CHILL=[
+    {k:"catSleep",x:6,y:22,t:0,zzz:1},{k:"catLoaf",x:11,y:64,t:1},{k:"teacup",x:90,y:37,t:1},{k:"bozu",x:91,y:65,t:1,zzz:1},{k:"zabuton",x:8,y:92,t:1},
+    {k:"koTanuki",x:10,y:37,t:2},{k:"jizo",x:5,y:50,t:2},{k:"koTanuki",x:16,y:9,t:2},{k:"oshou",x:7,y:90,t:2,zzz:1},{k:"jizo",x:85,y:93,t:2},
+    {k:"tanuki",x:6,y:78,t:3},{k:"catStretch",x:94,y:24,t:3},{k:"catBelly",x:95,y:51,t:3},{k:"dango",x:24,y:88,t:3},
+    {k:"koTanuki",x:95,y:79,t:4},{k:"catSleep",x:20,y:94,t:4,zzz:1},{k:"dango2",x:74,y:90,t:4},{k:"oshou",x:92,y:88,t:4,zzz:1},{k:"bozu",x:84,y:8,t:4,zzz:1},{k:"catBelly",x:80,y:95,t:4},
+  ];
+  const NEWS=[
+    ()=>"近所の寺、煩悩の過去最多を更新。",()=>"木魚職人「叩けば無心になる、はずだった」。",()=>`速報：あなたの位、<b>${rankOf()}</b>に到達。`,
+    ()=>"餓鬼、求人募集中。飢え歓迎・経験不問。",()=>"専門家「何もしないのが一番むずかしい」。",()=>"閻魔「今日も残業。裁いても終わらぬ」。",
+    ()=>"数珠、108粒では足りぬとの声。",()=>"賽銭箱、投げ銭で満杯。ご利益は未確認。",()=>`累計 ${fmt(s.total)} の煩悩が世に放たれました。`,
+    ()=>"「煩悩は消せぬが、増やせる」——当社調べ。",()=>"六道、本日も渋滞。地獄方面で事故の情報。",()=>`木魚、ただいま「<b>${MOKTIERS[curTier].name}</b>」の相。`,
+    ()=>"住職「リズム良く叩くと、つい念仏が出る」。",()=>"極楽の窓口「功徳は貯めても腐りませんよ」。",()=>"御縁玉に四相あり。大法要は下位の徳を糧とすると。",
+    ()=>"だらけ猫、木魚の周りに定住。住職は黙認の構え。",()=>"下位の徳、侮るなかれ。数が力になる日が来る。",
+  ];
+
+  let curTier=0,curMult=1,buyQty=1,dirty=true,lastPeak=0;
+  let momoUntil=0,momoPeak=1,momoDur=1,pendingMomo=false,frenzyUntil=0,houyouUntil=0;
+  let combo=0,lastTap=0,tapGaps=[],comboActive=false,comboStart=0;
+
+  const KEY="bonno-clicker-save-v9";
+  let s=fresh();
+  function fresh(){const own={};BUILDINGS.forEach(b=>own[b.id]=0);return {bonno:0,total:0,clicks:0,own,got:{},upg:{},perks:{},spent:0,gou:0,kudoku:0,rebirths:0,feversDone:0,bellStrikes:0,crits:0,luckies:0,frenzies:0,houyous:0,maxCombo:0,maxComboMs:0,cps:0,muted:false};}
+  function upgCount(){return Object.keys(s.upg).length;}
+  function availKudoku(){return s.kudoku-s.spent;}
+
+  const JU=["","万","億","兆","京","垓","秭","穣","溝","澗","正","載"];
+  function fmt(n){n=Math.floor(n);if(!isFinite(n))return "∞";if(n<0)n=0;if(n<10000)return String(n);const ch=[];let x=n;while(x>0){ch.push(x%10000);x=Math.floor(x/10000);}const hi=ch.length-1;if(hi>=JU.length)return n.toExponential(2);let out=ch[hi]+JU[hi];if(hi>=1&&ch[hi-1]>0)out+=ch[hi-1]+JU[hi-1];return out;}
+  function fmtRate(n){if(n<10)return (Math.round(n*10)/10).toString();if(n<10000)return String(Math.floor(n));return fmt(n);}
+  function fmtTime(ms){return (ms/1000).toFixed(1)+" 秒";}
+
+  const R=1.15;
+  function costOf(b,n){const p=Math.pow(R,s.own[b.id]);return Math.ceil(b.base*up.priceMul*p*(Math.pow(R,n)-1)/(R-1));}
+  function maxAff(b){const unit=b.base*up.priceMul*Math.pow(R,s.own[b.id]);const v=s.bonno*(R-1)/unit+1;if(v<=1)return 0;return Math.max(0,Math.floor(Math.log(v)/Math.log(R)));}
+  const fever={until:0,nextBong:0};
+  let up={};
+  function computeUp(){up={clickMul:1,globalMul:1,permMul:1,bld:{},clickFromCps:0,feverDurAdd:0,feverFreqMul:1,feverMulAdd:0,gouPer:0.03,priceMul:1,kudokuVal:0.03,startOwn:0,startBonnoFrac:0,momoPeakAdd:0,momoDurAdd:0,comboMax:40,comboStep:0.02,critChance:0.04,critMul:7,goldPow:1,offlineEff:0.4,lowSynergy:0,houyouPer:0.04};
+    BUILDINGS.forEach(b=>up.bld[b.id]=1);
+    UP.forEach(u=>{if(!s.upg[u.id])return;const e=u.eff;if(e.t==="click")up.clickMul*=e.m;else if(e.t==="global")up.globalMul*=e.m;else if(e.t==="bld")up.bld[e.id]*=e.m;else if(e.t==="clickcps")up.clickFromCps+=e.m;else if(e.t==="feverdur")up.feverDurAdd+=e.m;else if(e.t==="feverfreq")up.feverFreqMul*=e.m;else if(e.t==="fevermul")up.feverMulAdd+=e.m;else if(e.t==="gou")up.gouPer=Math.max(up.gouPer,e.m);else if(e.t==="combo")up.comboStep+=e.m;else if(e.t==="combomax")up.comboMax+=e.m;else if(e.t==="crit")up.critChance+=e.m;else if(e.t==="critmul")up.critMul+=e.m;else if(e.t==="goldpow")up.goldPow+=e.m;else if(e.t==="offline")up.offlineEff+=e.m;else if(e.t==="synergy")up.lowSynergy+=e.m;else if(e.t==="houyoup")up.houyouPer+=e.m;});
+    PERKS.forEach(p=>{if(s.perks[p.id])p.eff(up);});}
+  function feverOn(){return fever.until>now();}
+  function frenzyOn(){return frenzyUntil>now();}
+  function houyouOn(){return houyouUntil>now();}
+  function lowCount(){return s.own.gassho+s.own.saisen+s.own.omamori+s.own.juzu;}
+  function comboMul(){return 1+Math.min(combo,up.comboMax)*up.comboStep;}
+  function baseMult(){return (1+up.gouPer*s.gou)*(1+up.kudokuVal*s.kudoku)*(1+up.lowSynergy*lowCount())*up.globalMul*up.permMul;}
+  function clickPower(){return ((1+0.25*s.own.gassho)*up.clickMul*curMult+up.clickFromCps*s.cps)*comboMul();}
+  function rankIdx(){let i=0;for(let k=0;k<RANKS.length;k++){if(s.total>=RANKS[k][0])i=k;}return i;}
+  function rankOf(){return RANKS[rankIdx()][1];}
+  function rebirthReq(){return 1e6*Math.pow(4,s.rebirths);}
+  function canRebirth(){return s.total>=rebirthReq();}
+  function mokTierOf(t){let i=0;for(let k=0;k<MOKTIERS.length;k++){if(t>=MOKTIERS[k].min)i=k;}return i;}
+  function revealed(b){return s.total>=b.base*0.3;}
+
+  // audio
+  let actx=null,master=null;
+  function ac(){if(!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=s.muted?0:0.85;master.connect(actx.destination);}catch(e){return null;}}if(actx.state==="suspended")actx.resume();return actx;}
+  function pok(pitch){if(s.muted)return;const c=ac();if(!c)return;const t=c.currentTime;const pm=pitch||1;
+    const o=c.createOscillator();o.type="sine";o.frequency.setValueAtTime(360*pm,t);o.frequency.exponentialRampToValueAtTime(190*pm,t+0.035);const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.003);g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);o.connect(g).connect(master);o.start(t);o.stop(t+0.1);
+    const o2=c.createOscillator();o2.type="sine";o2.frequency.value=120*pm;const g2=c.createGain();g2.gain.setValueAtTime(0.0001,t);g2.gain.exponentialRampToValueAtTime(0.2,t+0.004);g2.gain.exponentialRampToValueAtTime(0.0001,t+0.08);o2.connect(g2).connect(master);o2.start(t);o2.stop(t+0.09);
+    const len=Math.floor(c.sampleRate*0.016),nb=c.createBuffer(1,len,c.sampleRate),d=nb.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;const ns=c.createBufferSource();ns.buffer=nb;const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1900*pm;bp.Q.value=1.4;const ng=c.createGain();ng.gain.setValueAtTime(0.36,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.016);ns.connect(bp).connect(ng).connect(master);ns.start(t);ns.stop(t+0.016);}
+  function bong(low){if(s.muted)return;const c=ac();if(!c)return;const t=c.currentTime;const base=low?150:300,dur=low?2.6:1.9;const m=c.createGain();m.gain.setValueAtTime(0.55,t);m.gain.exponentialRampToValueAtTime(0.0001,t+dur);m.connect(master);[[1,1],[2.0,0.55],[2.76,0.38],[3.5,0.22],[5.4,0.12]].forEach(([p,g])=>{const o=c.createOscillator();o.type="sine";o.frequency.value=base*p;const gg=c.createGain();gg.gain.value=g;o.connect(gg).connect(m);o.start(t);o.stop(t+dur);});}
+  function chime(){if(s.muted)return;const c=ac();if(!c)return;const t=c.currentTime;[660,880,1320].forEach((f,i)=>{const o=c.createOscillator();o.type="sine";o.frequency.value=f;const g=c.createGain();const st=t+i*0.06;g.gain.setValueAtTime(0.0001,st);g.gain.exponentialRampToValueAtTime(0.3,st+0.01);g.gain.exponentialRampToValueAtTime(0.0001,st+0.3);o.connect(g).connect(master);o.start(st);o.stop(st+0.3);});}
+  function fanfare(){if(s.muted)return;const c=ac();if(!c)return;const t=c.currentTime;const notes=[523.25,659.25,783.99,1046.5];
+    notes.forEach((f,i)=>{const st=t+i*0.075;[1,2].forEach((h,hi)=>{const o=c.createOscillator();o.type="sine";o.frequency.value=f*h;const g=c.createGain();const amp=hi?0.10:0.26;g.gain.setValueAtTime(0.0001,st);g.gain.exponentialRampToValueAtTime(amp,st+0.012);g.gain.exponentialRampToValueAtTime(0.0001,st+0.5);o.connect(g).connect(master);o.start(st);o.stop(st+0.52);});});
+    const st=t+0.12,o=c.createOscillator();o.type="triangle";o.frequency.setValueAtTime(1200,st);o.frequency.exponentialRampToValueAtTime(2500,st+0.32);const g=c.createGain();g.gain.setValueAtTime(0.0001,st);g.gain.exponentialRampToValueAtTime(0.11,st+0.02);g.gain.exponentialRampToValueAtTime(0.0001,st+0.36);o.connect(g).connect(master);o.start(st);o.stop(st+0.37);}
+  function critSfx(){if(s.muted)return;const c=ac();if(!c)return;const t=c.currentTime;const o=c.createOscillator();o.type="square";o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(1760,t+0.09);const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.18,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);o.connect(g).connect(master);o.start(t);o.stop(t+0.17);}
+  function chant(){if(s.muted)return;const c=ac();if(!c)return;const t=c.currentTime;const base=146.83;
+    [[1,0.15],[1.5,0.08],[2,0.04]].forEach(([p,g])=>{const o=c.createOscillator();o.type="sine";o.frequency.value=base*p;const lfo=c.createOscillator();lfo.frequency.value=5.2;const lg=c.createGain();lg.gain.value=base*p*0.013;lfo.connect(lg).connect(o.frequency);const gg=c.createGain();gg.gain.setValueAtTime(0.0001,t);gg.gain.exponentialRampToValueAtTime(g,t+0.06);gg.gain.exponentialRampToValueAtTime(0.0001,t+0.5);o.connect(gg).connect(master);o.start(t);o.stop(t+0.52);lfo.start(t);lfo.stop(t+0.52);});}
+
+  function shake(){const c=$("colMok");c.classList.remove("shake");void c.offsetWidth;c.classList.add("shake");}
+
+  const rainCv=$("rain"),rctx=rainCv.getContext("2d"),colMok=$("colMok");
+  function sizeRain(){rainCv.width=colMok.clientWidth;rainCv.height=colMok.clientHeight;}
+  const ITEMS=[];const MAXI=140;let clickHeat=0,accRain=0;
+  function addItem(burstX,burstY){if(ITEMS.length>=MAXI||!ITEM_SPRITES.length)return;const w=rainCv.width||300;
+    if(burstX!=null)ITEMS.push({x:burstX,y:burstY,vy:-2-Math.random()*2.5,vx:(Math.random()-0.5)*3.2,idx:(Math.random()*ITEM_SPRITES.length)|0,sz:16+Math.random()*12,g:0.14});
+    else ITEMS.push({x:Math.random()*w,y:-16,vy:0.9+Math.random()*1.7,vx:(Math.random()-0.5)*0.4,idx:(Math.random()*ITEM_SPRITES.length)|0,sz:16+Math.random()*14,g:0});}
+  function stepRain(k){rctx.clearRect(0,0,rainCv.width,rainCv.height);rctx.imageSmoothingEnabled=false;rctx.globalAlpha=0.92;for(let i=ITEMS.length-1;i>=0;i--){const p=ITEMS[i];if(p.g)p.vy+=p.g*k;p.x+=p.vx*k;p.y+=p.vy*k;if(p.y>rainCv.height+20){ITEMS.splice(i,1);continue;}rctx.drawImage(ITEM_SPRITES[p.idx],p.x-p.sz/2,p.y-p.sz/2,p.sz,p.sz);}rctx.globalAlpha=1;}
+
+  // chill cats
+  let chillTier=-1;
+  function renderChill(tier){if(tier===chillTier)return;const prev=chillTier;chillTier=tier;const box=$("chill");box.innerHTML="";
+    CHILL.forEach(cfg=>{if(cfg.t>tier)return;const el=document.createElement("div");el.className="chillsp pix"+(cfg.t>prev?" pop":"");el.style.left=cfg.x+"%";el.style.top=cfg.y+"%";el.style.backgroundImage="url("+(CHILL_URL[cfg.k]||"")+")";el.style.animationDelay=(cfg.x%5*0.4)+"s";if(cfg.zzz)el.innerHTML='<span class="zzz">z</span>';box.appendChild(el);});}
+
+  let modalYes=null;
+  function ask(msg,yesLabel,cb){$("mmsg").textContent=msg;$("mYes").textContent=yesLabel||"はい";modalYes=cb;$("modal").classList.add("on");}
+  $("mYes").addEventListener("click",()=>{$("modal").classList.remove("on");if(modalYes)modalYes();modalYes=null;});
+  $("mNo").addEventListener("click",()=>{$("modal").classList.remove("on");modalYes=null;});
+  function toastEl(cls,ot,on,ok){const el=document.createElement("div");el.className="ofuda "+cls;el.innerHTML=`<div class="ot">${ot}</div><div class="on">${on}</div><div class="ok">${ok}</div>`;$("toasts").appendChild(el);setTimeout(()=>el.remove(),cls.indexOf("welcome")>=0?6000:3800);}
+
+  const panelB=$("panelB"),upList=$("upList"),perkList=$("perkList"),achGrid=$("achGrid"),scenery=$("scenery");
+  const rows={};
+  BUILDINGS.forEach(b=>{const el=document.createElement("button");el.className="bld hide";
+    el.innerHTML=`<span class="cnt"></span><span class="icon pix"></span><span class="body"><span class="name">${b.name}</span><span class="rate"></span></span><span class="right"><span class="cost"></span><span class="own"></span></span><span class="prog"></span>`;
+    el.addEventListener("click",()=>buyN(b));panelB.appendChild(el);
+    rows[b.id]={el,icon:el.querySelector(".icon"),nameEl:el.querySelector(".name"),cost:el.querySelector(".cost"),rate:el.querySelector(".rate"),own:el.querySelector(".own"),cnt:el.querySelector(".cnt"),prog:el.querySelector(".prog"),costVal:1e99,aff:false,revealed:false,mode:""};});
+  const upRows={},upTeaser=$("upTeaser");
+  UP.forEach(u=>{const el=document.createElement("button");el.className="bld up hide";
+    el.innerHTML=`<span class="icon">✦</span><span class="body"><span class="name">${u.n}</span><span class="rate">${u.d}</span></span><span class="right"><span class="cost"></span></span>`;
+    el.addEventListener("click",()=>buyUpg(u));upList.appendChild(el);upRows[u.id]={el,cost:el.querySelector(".cost"),visible:false,aff:false};});
+  upList.parentNode.appendChild(upTeaser);
+  const perkCards={};
+  PERKS.forEach(p=>{const el=document.createElement("div");el.className="pk no";
+    el.innerHTML=`<span class="pc"></span><div class="pn">${p.n}</div><div class="pd">${p.d}</div>`;
+    el.addEventListener("click",()=>buyPerk(p));perkList.appendChild(el);perkCards[p.id]={el,pc:el.querySelector(".pc")};});
+  const achEls={};
+  ACH.forEach(a=>{const el=document.createElement("div");el.className="ach";el.innerHTML=`<div class="an">？？？</div><div class="ad">${a.d}</div>`;achGrid.appendChild(el);achEls[a.id]={el,name:el.querySelector(".an")};});
+
+  document.querySelectorAll(".qbtn").forEach(q=>q.addEventListener("click",()=>{buyQty=q.dataset.q==="max"?"max":+q.dataset.q;document.querySelectorAll(".qbtn").forEach(x=>x.classList.toggle("on",x===q));dirty=true;}));
+  $("sound").addEventListener("click",()=>{s.muted=!s.muted;$("sound").textContent=s.muted?"🔕":"🔔";if(master)master.gain.value=s.muted?0:0.85;if(!s.muted)ac();save();});
+  $("tabGaran").addEventListener("click",()=>switchScene("garan"));
+  $("tabInen").addEventListener("click",()=>switchScene("inen"));
+  function switchScene(v){const g=v==="garan";$("garanView").style.display=g?"":"none";$("inenView").style.display=g?"none":"";$("tabGaran").classList.toggle("on",g);$("tabInen").classList.toggle("on",!g);if(!g)renderStats();}
+  (function(){const g=$("ornHalo");let d="";for(let i=0;i<24;i++){const a=i*15*Math.PI/180,x=125+Math.cos(a)*70,y=108+Math.sin(a)*70,x2=125+Math.cos(a)*104,y2=108+Math.sin(a)*104;d+=`<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ffe08a" stroke-width="${i%2?2:4}" opacity=".55"/>`;}g.innerHTML=d+'<circle cx="125" cy="108" r="66" fill="none" stroke="#ffdd80" stroke-width="2" opacity=".4"/>';})();
+
+  function buyN(b){if(!revealed(b))return;let q=buyQty==="max"?maxAff(b):buyQty;if(q<1)return;const c=costOf(b,q);if(s.bonno<c)return;s.bonno-=c;s.own[b.id]+=q;pok();dirty=true;check();}
+  function buyUpg(u){if(s.upg[u.id]||!u.cond(s)||s.bonno<u.cost)return;s.bonno-=u.cost;s.upg[u.id]=1;computeUp();chime();dirty=true;check();}
+  function buyPerk(p){if(s.perks[p.id]){s.spent-=p.cost;delete s.perks[p.id];computeUp();chime();}
+    else{if(availKudoku()<p.cost)return;s.spent+=p.cost;s.perks[p.id]=1;computeUp();fanfare();}
+    renderPerks();renderActivePerks();check();dirty=true;save();}
+
+  const zone=$("clickzone");
+  function spawnSutra(){const el=document.createElement("div");el.className="float sutra";el.textContent=HEART[(Math.random()*HEART.length)|0];const r=zone.getBoundingClientRect();el.style.left=(r.width*(0.32+Math.random()*0.36))+"px";el.style.top=(r.height*0.34)+"px";zone.appendChild(el);setTimeout(()=>el.remove(),1250);}
+  function popFloat(cls,txt,x,y){const fl=document.createElement("div");fl.className="float"+(cls?" "+cls:"");fl.textContent=txt;fl.style.left=x+"px";fl.style.top=y+"px";zone.appendChild(fl);setTimeout(()=>fl.remove(),cls&&cls.indexOf("crit")>=0?1100:850);}
+  zone.addEventListener("click",e=>{const t=now();
+    if(zone.classList.contains("hint"))zone.classList.remove("hint");
+    if(lastTap){const gap=t-lastTap;
+      if(gap>=190&&gap<=820){tapGaps.push(gap);if(tapGaps.length>5)tapGaps.shift();const avg=tapGaps.reduce((a,c)=>a+c,0)/tapGaps.length;if(Math.abs(gap-avg)<=155)combo=Math.min(up.comboMax,combo+1);else combo=Math.max(0,combo-2);}
+      else{combo=Math.max(0,combo-3);tapGaps.length=0;}}
+    lastTap=t;if(combo>0&&!comboActive){comboActive=true;comboStart=t;}if(combo>s.maxCombo)s.maxCombo=combo;
+    const f=feverOn();let gain=clickPower();if(f){gain*=2.2;s.bellStrikes++;}if(frenzyOn())gain*=Math.round(77*up.goldPow);
+    const crit=Math.random()<up.critChance;if(crit){gain*=up.critMul;s.crits++;}
+    s.bonno+=gain;s.total+=gain;s.clicks++;clickHeat=Math.min(26,clickHeat+3);
+    const r=zone.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+    for(let i=0;i<(crit?7:3);i++)addItem(cx,cy);
+    zone.classList.remove("hit");void zone.offsetWidth;zone.classList.add("hit");
+    const pitch=Math.pow(2,Math.min(combo,20)/24);if(f)bong();else pok(crit?1.5:pitch);
+    if(crit){critSfx();shake();}
+    if(combo>=10&&Math.random()<0.55){spawnSutra();chant();}
+    popFloat(crit?"crit":(f?"big":""),(crit?"会心！+":"+")+fmt(gain),cx,cy);
+    dirty=true;check();});
+
+  // rebirth + gokuraku
+  $("rebirth").addEventListener("click",()=>{if(!canRebirth())return;doRebirth();});
+  function doRebirth(){s.kudoku+=1;s.rebirths++;s.bonno=0;s.upg={};BUILDINGS.forEach(b=>s.own[b.id]=0);combo=0;comboActive=false;tapGaps.length=0;computeUp();
+    if(up.startOwn>0)BUILDINGS.forEach(b=>s.own[b.id]=up.startOwn);
+    if(up.startBonnoFrac>0)s.bonno=Math.floor(up.startBonnoFrac*lastPeak);
+    lastPeak=s.bonno;pendingMomo=true;chime();dirty=true;check();save();openGokuraku();}
+  function openGokuraku(){renderPerks();$("gokuraku").classList.add("on");}
+  function renderPerks(){const av=availKudoku();$("gokKud").textContent=av;PERKS.forEach(p=>{const c=perkCards[p.id],owned=!!s.perks[p.id],aff=av>=p.cost;c.el.className="pk"+(owned?" owned":aff?" aff":" no");c.pc.textContent=owned?"解除":"功徳 "+p.cost;});}
+  function closeGokuraku(){$("gokuraku").classList.remove("on");if(pendingMomo){pendingMomo=false;momoPeak=3+up.momoPeakAdd;momoDur=14+up.momoDurAdd;momoUntil=now()+momoDur*1000;}fanfare();dirty=true;}
+  $("gReturn").addEventListener("click",closeGokuraku);
+  $("gSkip").addEventListener("click",closeGokuraku);
+  function renderActivePerks(){const owned=PERKS.filter(p=>s.perks[p.id]);const el=$("activePerks");if(!owned.length){el.style.display="none";return;}el.style.display="";el.innerHTML='<div class="aph">発動中の転生特典</div>'+owned.map(p=>`<span class="ap" title="${p.d}">✧${p.n}</span>`).join("");}
+
+  $("reset").addEventListener("click",()=>{ask("すべての記録を消して最初からにします。よいですか？","消す",()=>{const m=s.muted;s=fresh();s.muted=m;curTier=0;momoUntil=0;frenzyUntil=0;houyouUntil=0;lastPeak=0;combo=0;comboActive=false;pendingMomo=false;computeUp();wipe();chillTier=-1;renderChill(0);applyMokTier(0);scenerySig="";renderActivePerks();dirty=true;});});
+
+  // fever / golden variants
+  let goenEl=null,nextGoen=Date.now()+90000;
+  function spawnGoen(){const rr=Math.random(),type=rr<0.40?"fever":rr<0.66?"lucky":rr<0.84?"frenzy":"houyou";
+    goenEl=document.createElement("div");goenEl.className="goen"+(type==="fever"?"":" "+type);
+    goenEl.innerHTML='<div class="core">'+(type==="lucky"?"福":type==="frenzy"?"打":type==="houyou"?"法":"縁")+'</div>';
+    goenEl.style.left=(14+Math.random()*60)+"vw";goenEl.style.top=(26+Math.random()*46)+"vh";
+    goenEl.addEventListener("click",()=>{grantGoen(type);goenEl.remove();goenEl=null;});document.body.appendChild(goenEl);chime();
+    toastEl("goen","出現",type==="lucky"?"幸運の御縁玉":type==="frenzy"?"連打の御縁玉":type==="houyou"?"大法要の御縁玉":"御縁玉",type==="lucky"?"福を掴め！":type==="frenzy"?"連打狂乱！":type==="houyou"?"下位の徳が火を噴く！":"撞いてフィーバー！");
+    setTimeout(()=>{if(goenEl){goenEl.remove();goenEl=null;}},15000);}
+  function grantGoen(type){
+    if(type==="fever"){startFever();}
+    else if(type==="lucky"){const lump=Math.floor((s.cps*120+clickPower()*30+s.bonno*0.10+20)*up.goldPow);s.bonno+=lump;s.total+=lump;s.luckies++;chime();shake();
+      const r=zone.getBoundingClientRect();popFloat("lucky","福 +"+fmt(lump),r.width*0.5,r.height*0.4);toastEl("luck","幸運","臨時の煩悩","+"+fmt(lump));check();}
+    else if(type==="frenzy"){frenzyUntil=now()+10000;s.frenzies++;$("frenzyBanner").classList.add("on");bong();shake();check();}
+    else{houyouUntil=now()+15000;s.houyous++;$("houyouBanner").classList.add("on");bong(true);shake();check();}
+  }
+  function startFever(){fever.until=now()+15000+up.feverDurAdd*1000;fever.nextBong=0;s.feversDone++;bong();shake();$("banner").classList.add("on");$("feverbg").classList.add("on");$("mokSvg").style.display="none";$("bellSvg").style.display="";$("tapLabel").innerHTML='鐘 を 撞 け<small>フィーバー中：煩悩 ×'+(10+up.feverMulAdd)+'、一撞き大量</small>';dirty=true;check();}
+  function endFever(){$("banner").classList.remove("on");$("feverbg").classList.remove("on");$("mokSvg").style.display="";$("bellSvg").style.display="none";$("tapLabel").innerHTML='た　た　く<small>※ リズム良く叩くと念仏が流れ、ボーナス</small>';dirty=true;}
+  function feverTick(t){if(fever.until>t){if(t>=fever.nextBong){fever.nextBong=t+2000;bong();const b=s.cps*3+clickPower()*10;s.bonno+=b;s.total+=b;}}else if($("banner").classList.contains("on"))endFever();
+    if(frenzyUntil<=t&&$("frenzyBanner").classList.contains("on"))$("frenzyBanner").classList.remove("on");
+    if(houyouUntil<=t&&$("houyouBanner").classList.contains("on"))$("houyouBanner").classList.remove("on");
+    if(!goenEl&&t>=nextGoen){spawnGoen();nextGoen=t+(120000+Math.random()*120000)*up.feverFreqMul;}}
+
+  function applyMokTier(t){const T=MOKTIERS[t];$("g0").setAttribute("stop-color",T.body[0]);$("g1").setAttribute("stop-color",T.body[1]);$("g2").setAttribute("stop-color",T.body[2]);$("jewel").setAttribute("fill",T.jewel);$("ornGold").style.display=T.gold?"":"none";$("ornFlame").style.display=T.flame?"":"none";$("ornEye").style.display=T.eye?"":"none";$("ornHalo").style.display=T.halo?"":"none";$("mokSvg").style.filter=T.glow||"";$("moktier").textContent=T.name;renderChill(t);}
+  function tierUp(t){applyMokTier(t);bong(true);shake();const z=$("clickzone");z.classList.remove("morph");void z.offsetWidth;z.classList.add("morph");for(let i=0;i<20;i++)addItem();toastEl("morph","木魚が変化",MOKTIERS[t].name,"桁が上がった");}
+
+  // scenery + tooltip
+  let scenerySig="",prevOwn={};BUILDINGS.forEach(b=>prevOwn[b.id]=0);
+  function upgForBld(id){return UP.filter(u=>u.eff.t==="bld"&&u.eff.id===id&&s.upg[u.id]).length;}
+  function renderScenery(){
+    const sig=BUILDINGS.map(b=>s.own[b.id]).join(",")+"|"+Object.keys(s.upg).sort().join(",");if(sig===scenerySig)return;scenerySig=sig;
+    const active=BUILDINGS.filter(b=>s.own[b.id]>0);
+    if(!active.length){scenery.innerHTML='<div class="midempty">まだ何もない。<br>右の「徳を積む」で発生源を買うと、<br>ここに姿が増えていく。</div>';BUILDINGS.forEach(b=>prevOwn[b.id]=0);return;}
+    scenery.innerHTML="";
+    active.forEach(b=>{const owned=s.own[b.id],ups=upgForBld(b.id),grew=owned>(prevOwn[b.id]||0),url=SPRITE_URL[b.id];
+      const band=document.createElement("div");band.className="band"+(ups>0?" boosted":"")+(grew?" pulse":"");band.dataset.id=b.id;band.style.background="linear-gradient(180deg,"+b.band+"cc,"+b.band+"77)";
+      const cap=40,show=Math.min(owned,cap);let sp="";for(let i=0;i<show;i++){sp+=`<div class="sp pix${ups>0?" boost":""}${grew&&i===show-1?" new":""}" style="background-image:url(${url})"></div>`;}if(owned>cap)sp+=`<div class="more">＋${owned-cap}</div>`;
+      band.innerHTML=`<div class="bandhead"><span class="bi pix" style="background-image:url(${url})"></span><span class="bn">${b.name}</span>${ups>0?'<span class="ups">'+"✦".repeat(ups)+" 学び</span>":""}<span class="bc">×${owned}</span></div><div class="sprites">${sp}</div>`;
+      scenery.appendChild(band);});
+    BUILDINGS.forEach(b=>prevOwn[b.id]=s.own[b.id]);
+  }
+  const tip=$("tip");
+  scenery.addEventListener("mousemove",e=>{const band=e.target.closest(".band");if(!band){tip.style.display="none";return;}
+    const b=BUILDINGS.find(x=>x.id===band.dataset.id),owned=s.own[b.id],per=b.cps*up.bld[b.id]*curMult,tot=owned*per,pct=s.cps>0?(tot/s.cps*100):0,ups=upgForBld(b.id),low=LOWIDS.indexOf(b.id)>=0,perkMul=up.bld[b.id]/Math.pow(2,ups);
+    tip.innerHTML=`<div class="tt">${b.name}</div><div class="ts">［所持数：${owned}］</div><div class="tl">・それぞれの${b.name}が毎秒 <b>${fmtRate(per)}</b> 生産</div><div class="tl">・${owned}${b.name}が毎秒 <b>${fmtRate(tot)}</b>（全体の <b>${pct.toFixed(1)}%</b>）</div>${ups>0?`<div class="tl">・学び：<b>×${Math.pow(2,ups)}</b>（${ups}段）</div>`:""}${perkMul>1.001?`<div class="tl">・転生特典：<b>×${Math.round(perkMul)}</b></div>`:""}${low&&up.lowSynergy>0?`<div class="tl syn">・下位シナジー：下位の総数が全体倍率を押し上げる（現在 ×${(1+up.lowSynergy*lowCount()).toFixed(2)}）</div>`:""}${low&&houyouOn()?`<div class="tl syn">・大法要中：下位の数だけ火力に加算</div>`:""}`;
+    tip.style.display="block";let x=e.clientX+14,y=e.clientY+14;if(x+tip.offsetWidth>innerWidth-8)x=e.clientX-tip.offsetWidth-14;if(y+tip.offsetHeight>innerHeight-8)y=e.clientY-tip.offsetHeight-14;tip.style.left=x+"px";tip.style.top=y+"px";});
+  scenery.addEventListener("mouseleave",()=>{tip.style.display="none";});
+
+  function check(){let un=false;ACH.forEach(a=>{if(!s.got[a.id]&&a.c(s)){s.got[a.id]=1;s.gou+=a.k;toastEl("","実績解除",a.n,a.k>0?"業 +"+a.k:"業には非ず");un=true;}});if(un){dirty=true;fanfare();}return un;}
+
+  function renderShop(){
+    let teaserShown=false;
+    BUILDINGS.forEach(b=>{const r=rows[b.id];
+      if(revealed(b)){r.revealed=true;if(r.mode!=="live"){r.mode="live";if(SPRITE_URL[b.id])r.icon.style.backgroundImage="url("+SPRITE_URL[b.id]+")";r.nameEl.textContent=b.name;r.prog.style.width="0";}
+        let q=buyQty==="max"?Math.max(1,maxAff(b)):buyQty;const cost=costOf(b,q),owned=s.own[b.id];r.costVal=cost;const aff=s.bonno>=cost;r.aff=aff;
+        r.el.className="bld"+(aff?" afford":" cant");r.cnt.textContent=owned||"";const _pm=up.bld[b.id]/Math.pow(2,upgForBld(b.id));r.rate.textContent=`1つ ${fmtRate(b.cps*up.bld[b.id]*curMult)} 煩悩／秒`+(_pm>1.001?`（特典×${Math.round(_pm)}）`:"");
+        r.cost.textContent=fmt(cost)+(buyQty==="max"?`  (×${maxAff(b)})`:buyQty>1?`  (×${buyQty})`:"");r.cost.className="cost"+(aff?"":" no");r.own.textContent="所持 "+owned;}
+      else if(!teaserShown){teaserShown=true;r.revealed=false;if(r.mode!=="lock"){r.mode="lock";if(SPRITE_SIL[b.id])r.icon.style.backgroundImage="url("+SPRITE_SIL[b.id]+")";}
+        r.el.className="bld locked";r.cnt.textContent="";r.nameEl.textContent="？？？？？";r.rate.textContent="もっと徳を積むと現れる";r.cost.textContent="？？？";r.cost.className="cost";r.own.textContent="";r.prog.style.width=Math.min(100,s.total/(b.base*0.3)*100).toFixed(0)+"%";}
+      else{r.revealed=false;r.el.className="bld hide";}});
+    UP.forEach(u=>{const r=upRows[u.id],vis=!s.upg[u.id]&&u.cond(s);r.visible=vis;if(!vis){r.el.className="bld up hide";return;}const aff=s.bonno>=u.cost;r.aff=aff;r.el.className="bld up"+(aff?" afford":" cant");r.cost.textContent=fmt(u.cost);r.cost.className="cost"+(aff?"":" no");});
+    const locked=UP.some(u=>!s.upg[u.id]&&!u.cond(s));upTeaser.className="bld up locked"+(locked?"":" hide");
+    let buyable=0;UP.forEach(u=>{if(upRows[u.id].visible&&upRows[u.id].aff)buyable++;});$("upCount").textContent="取得 "+upgCount()+(buyable>0?"　買える "+buyable:"");
+    renderScenery();
+  }
+  function updateAfford(){
+    BUILDINGS.forEach(b=>{const r=rows[b.id];if(!r.revealed)return;const a=s.bonno>=r.costVal;if(a!==r.aff){r.aff=a;r.el.classList.toggle("afford",a);r.el.classList.toggle("cant",!a);}});
+    UP.forEach(u=>{const r=upRows[u.id];if(!r.visible)return;const a=s.bonno>=u.cost;if(a!==r.aff){r.aff=a;r.el.classList.toggle("afford",a);r.el.classList.toggle("cant",!a);}});
+  }
+  function renderStats(){$("stClicks").textContent=fmt(s.clicks);$("stTotal").textContent=fmt(s.total);$("stFever").textContent=fmt(s.feversDone);$("stHouyou").textContent=fmt(s.houyous);$("stCrit").textContent=fmt(s.crits);$("stReb").textContent=fmt(s.rebirths);$("stCombo").textContent=fmtTime(s.maxComboMs);
+    let got=0;ACH.forEach(a=>{if(s.got[a.id]){got++;const e=achEls[a.id];if(!e.el.classList.contains("got")){e.el.classList.add("got");e.name.textContent=a.n;}}});$("achCount").textContent=got+"/"+ACH.length;}
+
+  const cNum=$("cNum");let prevCount="",prevReb=-1,prevRankI=-1;
+  function setCount(cs){prevCount=cs;cNum.textContent=cs;const kn=(cs.match(/[^0-9]/g)||[]).length,dg=cs.length-kn,wt=kn*1.05+dg*0.6;cNum.style.fontSize=Math.max(20,Math.min(54,Math.floor(300/Math.max(wt,3))))+"px";}
+  function updateRebirth(){const ok=canRebirth(),key=ok?1:0;if(key===prevReb&&ok)return;prevReb=key;const rb=$("rebirth");
+    if(ok){rb.className="rebirth ready";rb.innerHTML=`天に召される（転生）<b>功徳 +1（永続 +${Math.round(up.kudokuVal*100)}%／回）</b>`;}
+    else{rb.className="rebirth locked";rb.innerHTML=`転生には 累計 ${fmt(rebirthReq())} 必要<b>いま ${fmt(s.total)}</b>`;}}
+  function celebrateRank(){const el=$("rank");el.classList.remove("up");void el.offsetWidth;el.classList.add("up");chime();shake();toastEl("rank","位が上がった",rankOf(),"新たな称号を授かった");}
+  const tk=$("ticker");function rotateNews(){tk.style.opacity="0";setTimeout(()=>{tk.innerHTML=NEWS[(Math.random()*NEWS.length)|0]();tk.style.opacity="1";},300);}
+
+  let lastT=Date.now(),accMeter=0,accCheck=0,accNews=0,accSave=0;
+  function frame(){
+    const t=Date.now();const dt=Math.min(0.25,(t-lastT)/1000);lastT=t;const k=Math.min(3,dt*60);
+    if(combo>0&&t-lastTap>900)combo=Math.max(0,combo-dt*9);
+    if(comboActive){const dur=t-comboStart;if(dur>s.maxComboMs)s.maxComboMs=dur;if(combo<=0)comboActive=false;}
+    let mm=1;if(momoUntil>t){mm=1+(momoPeak-1)*((momoUntil-t)/(momoDur*1000));}
+    const hy=houyouOn()?(2+lowCount()*up.houyouPer):1;
+    curMult=baseMult()*(feverOn()?(10+up.feverMulAdd):1)*mm*hy;
+    let raw=0;for(const b of BUILDINGS)raw+=s.own[b.id]*b.cps*up.bld[b.id];s.cps=raw*curMult;
+    if(s.cps>0){const g=s.cps*dt;s.bonno+=g;s.total+=g;}
+    if(s.bonno>lastPeak)lastPeak=s.bonno;
+    feverTick(t);
+    const nt=mokTierOf(s.total);if(nt!==curTier){const u=nt>curTier;curTier=nt;if(u)tierUp(nt);else applyMokTier(nt);}
+    const ri=rankIdx();if(ri!==prevRankI){if(prevRankI>=0&&ri>prevRankI)celebrateRank();prevRankI=ri;}
+    const cs=fmt(s.bonno);if(cs!==prevCount)setCount(cs);
+    zone.style.transform="scale("+(1+Math.min(clickHeat,26)*0.006).toFixed(3)+")";
+    const mo=$("momo");if(momoUntil>t||hy>1){mo.style.display="";mo.textContent=hy>1?"🪷 大法要 ×"+hy.toFixed(1):"🔥 転生の勢い ×"+mm.toFixed(1);}else if(mo.style.display!=="none")mo.style.display="none";
+    clickHeat*=0.94;const rate=Math.min(2.6,Math.log10(s.cps+1)*0.09+clickHeat*0.08+(feverOn()?0.8:0)+(frenzyOn()?0.6:0)+(hy>1?0.5:0));accRain+=rate*k;while(accRain>=1){accRain--;addItem();}stepRain(k);
+    accMeter+=dt;if(accMeter>0.15){accMeter=0;$("persec").textContent=fmtRate(s.cps)+" 煩悩／秒";$("mGou").textContent=fmt(s.gou);$("mMult").textContent="×"+curMult.toFixed(2);$("mKudoku").textContent=fmt(availKudoku());$("rank").textContent=rankOf();
+      const cb=$("combo");if(combo>=3){cb.style.display="";$("comboTxt").textContent="念仏コンボ ×"+comboMul().toFixed(2)+(combo>=10?"　念仏、流れる…":"");$("comboBar").style.width=Math.min(100,combo/up.comboMax*100)+"%";cb.classList.toggle("hot",combo>=10);}else if(cb.style.display!=="none")cb.style.display="none";
+      updateAfford();updateRebirth();if($("inenView").style.display!=="none")renderStats();}
+    accCheck+=dt;if(accCheck>0.3){accCheck=0;check();}
+    if(dirty){renderShop();dirty=false;}
+    accNews+=dt;if(accNews>6){accNews=0;rotateNews();}
+    accSave+=dt;if(accSave>5){accSave=0;save();}
+    requestAnimationFrame(frame);
+  }
+
+  const store=(typeof window!=="undefined"&&window.storage)?window.storage:null;
+  async function save(){if(!store)return;try{await store.set(KEY,JSON.stringify({bonno:s.bonno,total:s.total,clicks:s.clicks,own:s.own,got:s.got,upg:s.upg,perks:s.perks,spent:s.spent,gou:s.gou,kudoku:s.kudoku,rebirths:s.rebirths,feversDone:s.feversDone,bellStrikes:s.bellStrikes,crits:s.crits,luckies:s.luckies,frenzies:s.frenzies,houyous:s.houyous,maxCombo:s.maxCombo,maxComboMs:s.maxComboMs,muted:s.muted,lastSeen:Date.now()}),false);}catch(e){}}
+  async function wipe(){if(!store)return;try{await store.delete(KEY,false);}catch(e){}}
+  function offlineWelcome(lastSeen){if(!lastSeen)return;const el=Math.floor((Date.now()-lastSeen)/1000);if(el<60)return;let raw=0;for(const b of BUILDINGS)raw+=s.own[b.id]*b.cps*up.bld[b.id];const idleCps=raw*baseMult();if(idleCps<=0)return;const capped=Math.min(el,14400);const gain=Math.floor(idleCps*capped*up.offlineEff);if(gain<1)return;s.bonno+=gain;s.total+=gain;const hrs=(capped/3600);const dur=hrs>=1?hrs.toFixed(1)+"時間分":Math.round(capped/60)+"分";setTimeout(()=>toastEl("welcome","おかえりなさい","留守のあいだに","+"+fmt(gain)+"（"+dur+"）"),700);}
+  async function load(){let lastSeen=0;if(store){try{const r=await store.get(KEY,false);if(r&&r.value){const d=JSON.parse(r.value);s.bonno=d.bonno||0;s.total=d.total||0;s.clicks=d.clicks||0;s.gou=d.gou||0;s.kudoku=d.kudoku||0;s.rebirths=d.rebirths||0;s.feversDone=d.feversDone||0;s.bellStrikes=d.bellStrikes||0;s.crits=d.crits||0;s.luckies=d.luckies||0;s.frenzies=d.frenzies||0;s.houyous=d.houyous||0;s.maxCombo=d.maxCombo||0;s.maxComboMs=d.maxComboMs||0;s.muted=!!d.muted;s.spent=d.spent||0;BUILDINGS.forEach(b=>s.own[b.id]=(d.own&&d.own[b.id])||0);s.got=d.got||{};s.upg=d.upg||{};s.perks=d.perks||{};lastSeen=d.lastSeen||0;}}catch(e){}}
+    $("sound").textContent=s.muted?"🔕":"🔔";buildSprites();computeUp();offlineWelcome(lastSeen);curTier=mokTierOf(s.total);applyMokTier(curTier);lastPeak=s.bonno;prevRankI=rankIdx();renderActivePerks();sizeRain();addEventListener("resize",sizeRain);tk.innerHTML=NEWS[0]();if(s.clicks<1)zone.classList.add("hint");dirty=true;requestAnimationFrame(frame);}
+  load();
+
+})();
+</script>
+</body>
+</html>
