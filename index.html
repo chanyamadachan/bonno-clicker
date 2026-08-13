@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>煩悩クリッカー</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="bgfx"></div><div id="motes"></div>
+  <div class="ticker"><span class="msg" id="ticker">煩悩クリッカー、開店。</span></div>
+  <div class="feverbg" id="feverbg"></div>
+  <div class="toasts" id="toasts"></div>
+  <div class="banner" id="banner">🔔 鐘つきフィーバー！鐘を撞け</div>
+  <div class="banner2" id="frenzyBanner">🔥 連打狂乱！たたく威力が爆上がり</div>
+  <div class="banner3" id="houyouBanner">🪷 大法要！下位の徳が火を噴く</div>
+  <div id="tip"></div>
+
+  <div class="topbar">
+    <div class="brand"><h1>煩悩クリッカー</h1><span class="tag">百鬼夜行</span></div>
+    <div class="meters">
+      <div class="chip"><span class="k">業</span><span class="v" id="mGou">0</span></div>
+      <div class="chip mult"><span class="k">倍率</span><span class="v" id="mMult">×1.00</span></div>
+      <div class="chip kudoku"><span class="k">功徳</span><span class="v" id="mKudoku">0</span></div>
+      <div class="chip sound" id="sound" title="音のオン/オフ">🔔</div>
+    </div>
+  </div>
+
+  <div class="app" id="viewGame">
+    <section class="col-scene card">
+      <div class="scenetabs"><button class="stab on" id="tabGaran">伽藍</button><button class="stab" id="tabInen">因縁</button></div>
+      <div class="sceneBody">
+        <div id="garanView">
+          <div class="midhead">獲得したアイテム<small>買うほど、この世が賑わう ／ 触れると効果が見える</small></div>
+          <div id="scenery"><div class="midempty">まだ何もない。<br>右の「徳を積む」で発生源を買うと、<br>ここに姿が増えていく。</div></div>
+        </div>
+        <div id="inenView" style="display:none"><div class="inpad">
+          <div class="sttitle">因縁（統計）</div>
+          <div class="stgrid">
+            <div class="stcard"><span class="sk">木魚を叩いた数</span><span class="sv" id="stClicks">0</span></div>
+            <div class="stcard"><span class="sk">生産した煩悩（累計）</span><span class="sv" id="stTotal">0</span></div>
+            <div class="stcard"><span class="sk">フィーバー発動回数</span><span class="sv" id="stFever">0</span></div>
+            <div class="stcard"><span class="sk">大法要の回数</span><span class="sv" id="stHouyou">0</span></div>
+            <div class="stcard"><span class="sk">会心を出した回数</span><span class="sv" id="stCrit">0</span></div>
+            <div class="stcard"><span class="sk">転生した回数</span><span class="sv" id="stReb">0</span></div>
+            <div class="stcard"><span class="sk">念仏コンボ最長持続</span><span class="sv" id="stCombo">0.0 秒</span></div>
+          </div>
+          <div class="sttitle">獲得した実績 <span style="font-size:11px;color:#9c8358" id="achCount">0/0</span></div>
+          <div class="achgrid" id="achGrid"></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="col-mok card" id="colMok">
+      <canvas id="rain"></canvas>
+      <div id="chill"></div>
+      <div class="lz">
+        <div class="rank" id="rank">見習い煩悩</div>
+        <div class="count"><span class="n" id="cNum">0</span><span class="u">煩悩</span></div>
+        <div class="persec" id="persec">0 煩悩／秒</div>
+        <div class="momo" id="momo" style="display:none"></div>
+        <div class="combo" id="combo" style="display:none"><span class="ct" id="comboTxt"></span><span class="cbar"><i id="comboBar"></i></span></div>
+        <div class="moktier" id="moktier">素木の木魚</div>
+        <div class="clickzone" id="clickzone">
+          <div class="mokwrap">
+          <svg id="mokSvg" width="300" height="270" viewBox="0 0 250 215">
+            <defs>
+              <radialGradient id="bodyGrad" cx="42%" cy="34%" r="76%"><stop id="g0" offset="0%" stop-color="#d8b98a"/><stop id="g1" offset="44%" stop-color="#b5915f"/><stop id="g2" offset="100%" stop-color="#7d5f36"/></radialGradient>
+              <linearGradient id="woodhi" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".3"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+              <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
+            </defs>
+            <ellipse cx="125" cy="198" rx="96" ry="14" fill="#000" opacity=".32"/>
+            <g id="ornHalo" style="display:none"></g>
+            <g id="ornFlame" style="display:none" fill="#ff7a1a"><path d="M34 150 q-16 -30 4 -54 q-4 24 14 30 q-6 16 8 26 q-16 6 -26 -2z" opacity=".9"/><path d="M216 150 q16 -30 -4 -54 q4 24 -14 30 q6 16 -8 26 q16 6 26 -2z" opacity=".9"/></g>
+            <path d="M40 176 q85 -24 170 0 q-6 20 -20 22 h-130 q-14 -2 -20 -22z" fill="#6b3f86" stroke="#1c140d" stroke-width="3"/>
+            <path d="M52 176 q73 -16 146 0" fill="none" stroke="#9d6ab0" stroke-width="4" opacity=".6"/>
+            <g id="mokBody">
+              <path d="M40 108 q0 -58 60 -70 q30 -6 62 4 q52 16 48 74 q-4 52 -86 52 q-84 0 -84 -60z" fill="url(#bodyGrad)" stroke="#1c140d" stroke-width="4"/>
+              <path d="M60 66 q60 -28 128 4 q-12 -32 -66 -34 q-52 -2 -62 30z" fill="url(#woodhi)"/>
+              <path d="M150 108 q6 -30 -24 -38 q-34 -8 -46 22 q-8 30 22 40 q28 8 40 -14 q8 -18 -12 -26 q-16 -4 -22 12" fill="none" stroke="#3a1c0c" stroke-width="3.5" opacity=".5" stroke-linecap="round"/>
+              <path d="M46 118 q10 -12 22 0 M70 124 q10 -12 22 0 M158 124 q10 -12 22 0 M182 118 q10 -12 22 0" fill="none" stroke="#3a1c0c" stroke-width="2" opacity=".4"/>
+              <path d="M96 92 q-22 -6 -30 10 q-4 14 12 18 q16 2 22 -10 q4 -12 -4 -18z" fill="#7a3f1c" stroke="#1c140d" stroke-width="3"/>
+              <path d="M154 92 q22 -6 30 10 q4 14 -12 18 q-16 2 -22 -10 q-4 -12 4 -18z" fill="#7a3f1c" stroke="#1c140d" stroke-width="3"/>
+              <circle cx="78" cy="100" r="4" fill="#e9c24a"/><circle cx="172" cy="100" r="4" fill="#e9c24a"/>
+              <path id="jewel" d="M125 88 q14 8 0 30 q-14 -22 0 -30z" fill="#c0392b" stroke="#1c140d" stroke-width="2.5"/>
+              <path d="M125 88 q7 6 0 24 q-7 -18 0 -24" fill="#ff8a5a" opacity=".6"/>
+              <path d="M62 140 q63 30 126 0 q-63 18 -126 0z" fill="#1c0e05"/>
+              <path d="M70 138 q55 24 110 0" fill="none" stroke="#000" stroke-width="3" opacity=".6"/>
+            </g>
+            <g id="ornGold" style="display:none"><path d="M40 108 q0 -58 60 -70 q30 -6 62 4 q52 16 48 74 q-4 52 -86 52 q-84 0 -84 -60z" fill="none" stroke="#ffe08a" stroke-width="2.5" opacity=".85"/></g>
+            <g id="ornEye" style="display:none"><ellipse cx="125" cy="108" rx="20" ry="12" fill="#120306"/><ellipse cx="125" cy="108" rx="18" ry="10" fill="#ff2b2b"/><circle cx="125" cy="108" r="5" fill="#120306"/><ellipse cx="125" cy="108" rx="28" ry="17" fill="none" stroke="#ff2b2b" stroke-width="2" opacity=".5" filter="url(#soft)"/></g>
+          </svg>
+          <svg id="bellSvg" width="300" height="270" viewBox="0 0 250 215" style="display:none">
+            <defs><linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f6d98a"/><stop offset="45%" stop-color="#c99a3a"/><stop offset="100%" stop-color="#7a5416"/></linearGradient></defs>
+            <ellipse cx="125" cy="198" rx="70" ry="12" fill="#000" opacity=".3"/>
+            <g id="shumoku"><rect x="6" y="126" width="72" height="12" rx="6" fill="#8a5a2f" stroke="#1c140d" stroke-width="3"/><circle cx="80" cy="132" r="13" fill="#c98a4a" stroke="#1c140d" stroke-width="3"/></g>
+            <g id="bellBody"><line x1="125" y1="16" x2="125" y2="36" stroke="#1c140d" stroke-width="4"/><path d="M112 22 q13 -14 26 0 q6 8 -13 12 q-19 -4 -13 -12z" fill="url(#bronze)" stroke="#1c140d" stroke-width="3"/><path d="M74 62 q0 -26 51 -26 q51 0 51 26 v66 q0 20 -20 20 h-62 q-20 0 -20 -20z" fill="url(#bronze)" stroke="#1c140d" stroke-width="4"/><path d="M70 148 q55 22 110 0 q0 16 -14 16 h-82 q-14 0 -14 -16z" fill="#a9791f" stroke="#1c140d" stroke-width="4"/><path d="M84 76 h82 M84 98 h82 M84 120 h82" stroke="#6a4611" stroke-width="2.5" opacity=".6"/><g fill="#8a5f18"><circle cx="96" cy="68" r="3"/><circle cx="125" cy="66" r="3"/><circle cx="154" cy="68" r="3"/></g><circle cx="125" cy="152" r="6" fill="#6a4611"/></g>
+          </svg>
+          </div>
+        </div>
+        <div class="tap" id="tapLabel">た　た　く<small>※ リズム良く叩くと念仏が流れ、ボーナス</small></div>
+        <div class="aperks" id="activePerks" style="display:none"></div>
+        <button class="rebirth" id="rebirth"></button>
+      </div>
+    </section>
+
+    <section class="col-shop card">
+      <div class="rscroll">
+        <div class="shead">学び<span class="sc" id="upCount">取得 0</span></div>
+        <div class="sect"><p class="hint">一度きりの学び。効果は<b>ずっと続く</b>。条件を満たすと現れる。</p><div id="upList"></div>
+          <div class="bld up locked hide" id="upTeaser"><span class="icon">？</span><span class="body"><span class="name">？？？</span><span class="rate">条件を満たすと新たな学びが現れる</span></span><span class="right"><span class="cost">？？？</span></span></div>
+        </div>
+        <div class="shead">徳を積む<span class="sc">発生源を買って煩悩/秒を増やす</span></div>
+        <div class="buybar">個数<button class="qbtn on" data-q="1">1</button><button class="qbtn" data-q="10">10</button><button class="qbtn" data-q="100">100</button><button class="qbtn" data-q="max">全部</button></div>
+        <div class="sect" id="panelB"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="goku" id="gokuraku"><div class="gbox">
+    <div class="gtitle">極楽浄土</div>
+    <div class="gsub">——あなたは一度、天に召された。</div>
+    <div class="gkud">使える功徳　<b id="gokKud">0</b></div>
+    <div class="ghint">功徳を納めて<b>特典</b>を授かる。特典はこの画面で<b>いつでも解除して功徳を戻せる</b>。<br>今回は選ばず、より大きな功徳のために貯めておくのもよい。</div>
+    <div class="gperks" id="perkList"></div>
+    <button class="greturn" id="gReturn">現世に還る</button>
+    <button class="gskip" id="gSkip">今回は選ばず、功徳を貯めて還る</button>
+  </div></div>
+
+  <footer>
+    <div class="note">終わりはない。ただ煩悩が積もるだけ。<br>木魚は累計 1万／1億／100億／1兆 で姿を変える。</div>
+    <button class="reset" id="reset">最初から（記録を消す）</button>
+  </footer>
+
+  <div class="modal" id="modal"><div class="mbox"><div class="mmsg" id="mmsg"></div><div class="mbtns"><button class="mbtn yes" id="mYes">はい</button><button class="mbtn no" id="mNo">やめる</button></div></div></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

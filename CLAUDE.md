@@ -4,9 +4,45 @@ Cookie Clicker の仏教パロディ版インクリメンタルゲーム。木�
 
 ## ファイル構成
 
-- `bonno-clicker_ver102.html` — アプリ本体。HTML/CSS/JS が1ファイルに完結している。ビルドツール・外部依存ライブラリ・外部アセットは一切なし（フォントも `Georgia`/`Hiragino` 等のシステムフォントのみ）。
-- ファイル名の `ver102` は手動バージョニングの通し番号。大きな改修をするときはファイル名の連番を上げる運用になっている（例: `ver103` を新規作成）。git のコミット履歴とは別に、ファイル名自体が世代管理の手がかりになっている点に注意。
-- スクリプトは `<script>(function(){ "use strict"; ... })();</script>` という単一 IIFE 内に全ロジックが入っている（グローバル汚染なし）。モジュール分割やビルドステップは存在しない。
+保守運用のため、単一HTMLファイル構成（旧 `bonno-clicker_ver102.html`）から、ネイティブ ES Modules によるディレクトリ構成にリファクタリング済み（バンドラー等のビルドステップは導入していない。外部依存ライブラリ・外部アセットも引き続き一切なし）。バージョン管理はファイル名連番ではなく git のコミット履歴で行う。
+
+```
+index.html            骨格HTML（DOM構造・全id・inline SVGのみ。style/scriptは分離）
+css/style.css          元<style>の中身をそのまま移動
+js/
+  main.js               エントリポイント。requestAnimationFrame の frame() ループと起動シーケンス（load()の呼び出し等）を統括
+  data/                 静的データ配列（ゲームバランス定義）
+    buildings.js          BUILDINGS, LOWIDS
+    upgrades.js            UP
+    perks.js                PERKS
+    achievements.js         ACH
+    content.js               RANKS, MOKTIERS, CHILL, NEWS, HEART
+    sprite-data.js            PAL, GRID（ドット絵データ）
+  core/                  状態・共通ロジック
+    state.js               共有state オブジェクト（後述）, fresh(), KEY
+    format.js               fmt/fmtRate/fmtTime, now()
+    formulas.js              costOf/maxAff/computeUp/clickPower/baseMult/rebirthReq 等の判定関数群
+    audio.js                 Web Audio（ac/pok/bong/chime/fanfare/critSfx/chant）
+    sprites.js                makeSprite/makeSil/buildSprites
+    save.js                   window.storage ラッパー（save/load/wipe/offlineWelcome）
+  ui/                    DOM描画・イベント処理
+    dom.js                  $ヘルパー, 要素キャッシュ, 建物/学び/特典/実績カードの初期構築, タブ/qty/soundイベント, ask()/toastEl()/shake()
+    shop.js                  buyN/buyUpg, renderShop, updateAfford
+    scenery.js                renderScenery, renderChill, applyMokTier/tierUp, ツールチップ
+    rebirth.js                doRebirth, 極楽モーダル, buyPerk, リセット処理
+    events.js                 御縁玉/フィーバー/連打/大法要
+    click.js                  木魚クリック処理・コンボ・spawnSutra/popFloat
+    stats.js                  setCount/updateRebirth/checkRankChange/実績check/renderStats/rotateNews
+    rain.js                   canvasの雨演出
+```
+
+### state 共有の設計（重要）
+
+元コードはIIFE内のモジュールスコープ変数（`s`/`up`/`combo`/`dirty` 等）をすべてのセクションから直接読み書きしていた。ES Modulesではimportした変数バインディングへの再代入ができない（プロパティのミューテーションのみ可能）ため、`js/core/state.js` の `state` という単一の共有オブジェクトに、元のモジュールスコープ変数をすべてプロパティとして集約している（`state.s`＝プレイヤー状態、`state.up`＝アップグレード集計値、`state.combo`/`state.dirty`/`state.curTier` 等）。他のモジュールはこれを `import { state } from ".../core/state.js"` して `state.s.bonno += x` のようにプロパティ経由で読み書きする。新しい状態を追加する場合もこの `state` オブジェクトに載せること（新たにモジュールスコープの `let` を増やさない）。
+
+### 循環import時の注意
+
+`ui/dom.js` は建物/学び/特典カードの初期構築時に `shop.js`/`rebirth.js`/`stats.js` の購入・描画関数を参照し、それらのモジュールも `dom.js` のDOM要素キャッシュを参照するため、意図的な循環importになっている箇所がある。安全に成立しているのは、`dom.js` の `$` ヘルパーや `toastEl`/`ask`/`shake` を **`function` 宣言**（ホイスティングされ、循環importの途中でも参照可能）にしているためと、他モジュール側の相互参照が**関数ボディ内（イベントハンドラ等）に限定**され、モジュールのトップレベルで即座には評価されないためである。新しいモジュールを追加する際、他モジュールからimportした値をトップレベルで即座に使う（例: `scenery.addEventListener(...)` をトップレベルに書く）と `Cannot access 'X' before initialization` で壊れる可能性があるため、そのような処理は関数化して呼び出し元（`main.js`の起動シーケンス等）から明示的に呼ぶこと。
 
 ## 画面レイアウト（3カラム、`.app` グリッド）
 
@@ -54,13 +90,13 @@ Cookie Clicker の仏教パロディ版インクリメンタルゲーム。木�
 
 ## セーブ / オフライン進行
 
-- セーブは `localStorage` ではなく `window.storage`（`store`）という外部提供オブジェクトの `get`/`set` に依存している（`bonno-clicker_ver102.html:827` 付近）。`window.storage` が存在しない環境（例: ローカルで直接ファイルを開いた場合）では `store` が `null` になり、**セーブ/ロードもオフライン進行報酬も一切動作しない**。動作確認する際はホスト環境が `window.storage.get(key, isJSON)` / `window.storage.set(key, value, isJSON)` 相当のAPIを注入しているか確認すること。
+- セーブは `localStorage` ではなく `window.storage`（`store`）という外部提供オブジェクトの `get`/`set` に依存している（`js/core/save.js`）。`window.storage` が存在しない環境（例: ローカルで直接ファイルを開いた場合）では `store` が `null` になり、**セーブ/ロードもオフライン進行報酬も一切動作しない**。動作確認する際はホスト環境が `window.storage.get(key, isJSON)` / `window.storage.set(key, value, isJSON)` 相当のAPIを注入しているか確認すること。
 - セーブキーは `KEY = "bonno-clicker-save-v9"`。セーブデータ構造を変える破壊的変更をする場合はバージョン番号を上げて既存セーブとの非互換を明示する運用と推測される。
 - オフライン進行は `offlineWelcome()` が担当。最終アクセス時刻との差分（最大4時間キャップ）から放置中の生産量を計算し、`up.offlineEff`（学びで強化可能）を掛けて帰還時に一括付与する。
 
 ## メインループ
 
-`requestAnimationFrame` ベースの `frame()` 関数（`bonno-clicker_ver102.html:800` 付近）が単一のゲームループ。フレームごとに: 秒間生産計算 → コンボ減衰 → フィーバー/御縁玉タイマー処理 → 木魚ティア/ランク判定 → 各種UI更新（0.15秒間隔）→ 実績チェック（0.3秒間隔）→ ショップ再描画（dirtyフラグ時）→ ニュースティッカー更新（6秒間隔）→ オートセーブ（5秒間隔）。UIは基本的に `dirty` フラグ + 間隔スロットリングで再描画コストを抑えている。
+`requestAnimationFrame` ベースの `frame()` 関数（`js/main.js`）が単一のゲームループ。フレームごとに: 秒間生産計算 → コンボ減衰 → フィーバー/御縁玉タイマー処理 → 木魚ティア/ランク判定 → 各種UI更新（0.15秒間隔）→ 実績チェック（0.3秒間隔）→ ショップ再描画（dirtyフラグ時）→ ニュースティッカー更新（6秒間隔）→ オートセーブ（5秒間隔）。UIは基本的に `dirty` フラグ + 間隔スロットリングで再描画コストを抑えている。
 
 ## 音声
 
@@ -68,9 +104,14 @@ Cookie Clicker の仏教パロディ版インクリメンタルゲーム。木�
 
 ## 開発時の注意
 
-- 単一ファイル・単一IIFE構成のため、機能追加時も既存のグローバル変数・DOM ID 命名規則（`$("id")` ヘルパー経由でのアクセス）に合わせること。
-- 新しい発生源やアップグレードを追加する場合、`BUILDINGS`/`UP`/`PERKS`/`ACH` はそれぞれ配列の並び順がそのままUI表示順になる。コストやしきい値は既存の指数カーブ（発生源は概ね20〜25倍刻み）に揃えると難易度バランスが崩れにくい。
-- ブラウザで直接開くと `window.storage` 未定義によりセーブ機能が無効化される点を、動作確認・デバッグ時に混同しないこと。
+- モジュール分割後もDOM ID 命名規則（`$("id")` ヘルパー経由でのアクセス、`js/ui/dom.js` の `$` 関数）に合わせること。新しいDOM要素を追加した場合、`index.html` に `id` を振り、参照する側は該当モジュールで `$("id")` する。
+- 新しい発生源やアップグレードを追加する場合、`BUILDINGS`/`UP`/`PERKS`/`ACH`（いずれも `js/data/` 配下）はそれぞれ配列の並び順がそのままUI表示順になる。コストやしきい値は既存の指数カーブ（発生源は概ね20〜25倍刻み）に揃えると難易度バランスが崩れにくい。
+- **ES Modules (`<script type="module">`) は `file://` で直接開くとCORSブロックされ起動しない。** 従来の「直接開くと `window.storage` 未定義でセーブだけ無効化される」から一歩進み、**ローカルサーバ経由での確認が必須**になった点に注意。ローカル確認は `php -S localhost:8000` を推奨（さくらのレンタルサーバでのPHP運用と揃えられるため）。PHPが手元にない場合は `python3 -m http.server 8000` でも代用できる。
+- 新しいモジュールを追加する際、循環import下でのトップレベル即時評価に注意（上記「循環importの注意」参照）。他モジュールの値を使う副作用的な処理（`addEventListener` 登録など）は、モジュールのトップレベルに直書きせず関数化し、`main.js` の起動シーケンスから呼ぶのが安全。
+
+## 今後の方向性（メモ）
+
+陣営対戦要素（煩悩陣営 vs 仏教陣営）を見据え、さくらのレンタルサーバ/VPS + PHP/MySQL で「各プレイヤーの貢献値を定期的にサーバーへ送信・集計し、陣営スコアとして返す」薄いAPIを追加する方針で合意済み（2026-08-14時点）。今回のリファクタリングはその前段としてフロントエンドの保守性を上げる作業であり、バックエンド（`backend/` ディレクトリ等）はまだ着手していない。
 
 ## コミット運用
 
