@@ -13,6 +13,7 @@ import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
 import { maybeShowFactionPrompt } from "./ui/faction.js";
 import { renderWorldGauge } from "./ui/world.js";
+import { tickFactionSend } from "./core/faction.js";
 import "./ui/click.js";
 
 let lastT=Date.now(),accMeter=0,accCheck=0,accNews=0,accSave=0,accRain=0;
@@ -29,6 +30,7 @@ function frame(){
   if(s.cps>0){const g=s.cps*dt;s.bonno+=g;s.total+=g;}
   if(s.bonno>state.lastPeak)state.lastPeak=s.bonno;
   feverTick(t);
+  tickFactionSend(t);
   const nt=mokTierOf(s.total);if(nt!==state.curTier){const u=nt>state.curTier;state.curTier=nt;if(u)tierUp(nt);else applyMokTier(nt);}
   checkRankChange(rankIdx());
   setCount(fmt(s.bonno));
