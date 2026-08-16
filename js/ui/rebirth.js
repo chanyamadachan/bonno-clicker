@@ -7,6 +7,7 @@ import { PERKS } from "../data/perks.js";
 import { $, ask, perkCards } from "./dom.js";
 import { check } from "./stats.js";
 import { resetSceneryCache, renderChill, applyMokTier } from "./scenery.js";
+import { maybeShowFactionPrompt } from "./faction.js";
 
 $("rebirth").addEventListener("click",()=>{if(!canRebirth())return;doRebirth();});
 
@@ -41,4 +42,5 @@ $("reset").addEventListener("click",()=>{ask("すべての記録を消して最�
   computeUp();wipe();
   resetSceneryCache();renderChill(0);applyMokTier(0);
   renderActivePerks();state.dirty=true;
+  maybeShowFactionPrompt();
 });});
