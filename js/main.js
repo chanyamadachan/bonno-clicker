@@ -12,6 +12,7 @@ import { renderShop, updateAfford } from "./ui/shop.js";
 import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check, rotateNews } from "./ui/stats.js";
 import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
+import { maybeShowFactionPrompt } from "./ui/faction.js";
 import "./ui/click.js";
 
 let lastT=Date.now(),accMeter=0,accCheck=0,accNews=0,accSave=0,accRain=0;
@@ -60,6 +61,7 @@ async function init(){
   addEventListener("resize", sizeRain);
   tk.innerHTML = NEWS[0]();
   if(state.s.clicks < 1) zone.classList.add("hint");
+  maybeShowFactionPrompt();
   state.dirty = true;
   requestAnimationFrame(frame);
 }
