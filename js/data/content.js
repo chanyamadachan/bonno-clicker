@@ -5,6 +5,7 @@ import { rankOf } from "../core/formulas.js";
 export const RANKS=[[0,"見習い煩悩"],[300,"俗物"],[12000,"生臭坊主"],[400000,"煩悩の達人"],[2e7,"大欲魔"],[1e9,"百八の主"],[6e10,"煩悩大権現"],[3e12,"生き仏（大嘘）"],[1e15,"煩悩の化身"]];
 
 export const HEART=["色即是空","空即是色","般若波羅蜜","照見五蘊皆空","羯諦羯諦","波羅羯諦","不生不滅","遠離顛倒夢想","心無罣礙","菩提薩埵"];
+export const HYPE=["乗ってきた","MAX TENSION","止まらない","ノリノリ","もっとくれ","TOP OF THE WORLD"];
 
 export const MOKTIERS=[
   {min:0,name:"素木の木魚",body:["#d8b98a","#b5915f","#7d5f36"],jewel:"#a23327",gold:0,flame:0,eye:0,halo:0,glow:""},

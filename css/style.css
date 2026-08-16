@@ -128,6 +128,7 @@
   .float.lucky{font-size:30px;color:#a6f0a0;text-shadow:0 2px 0 #1c140d,0 0 12px rgba(120,255,120,.6)}
   .float.crit{font-size:34px;color:#ffcf4a;text-shadow:0 2px 0 #7a2f1c,0 0 16px rgba(255,120,60,.75)}
   .float.sutra{font-size:16px;color:#ffe6a0;text-shadow:0 1px 4px #000,0 0 10px rgba(255,210,90,.5);animation:srise 1.25s ease-out forwards}
+  .float.sutra.hype{color:var(--shu);text-shadow:0 1px 4px #000,0 0 12px rgba(255,77,109,.7);font-weight:700}
   @keyframes rise{0%{opacity:0;transform:translate(-50%,0) scale(.7)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1.1)}}
   @keyframes srise{0%{opacity:0;transform:translate(-50%,12px)}20%{opacity:.95}100%{opacity:0;transform:translate(-50%,-80px)}}
   .aperks{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:300px;margin-top:10px}
