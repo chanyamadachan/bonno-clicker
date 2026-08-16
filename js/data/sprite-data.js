@@ -1,4 +1,4 @@
-export const PAL={'.':null,K:'#1c140d',w:'#ffffff',c:'#f6e7c4',y:'#ffd24a',e:'#ffe08a',o:'#e8912f',f:'#ff7a1a',r:'#c0392b',R:'#7a2f1c',g:'#3fae3f',G:'#1f6f2f',b:'#6f9ad6',B:'#365a86',p:'#a06fd0',P:'#5a3f86',n:'#b07a3a',N:'#5c3a1c',s:'#c8c8d0',S:'#6a6a72',m:'#c85e86',t:'#d8b98a'};
+export const PAL={'.':null,K:'#1c140d',w:'#ffffff',c:'#f6e7c4',y:'#ffd24a',e:'#ffe08a',o:'#e8912f',f:'#ff7a1a',r:'#c0392b',R:'#7a2f1c',g:'#3fae3f',G:'#1f6f2f',b:'#6f9ad6',B:'#365a86',p:'#a06fd0',P:'#5a3f86',n:'#b07a3a',N:'#5c3a1c',s:'#c8c8d0',S:'#6a6a72',m:'#c85e86',t:'#d8b98a',M:'#ff2fa0',C:'#4de3ff',A:'#8aff4d',Y:'#faff3d',D:'#160a20'};
 export const GRID={
   coin:["....KKKK....","..KKyyyyKK..",".KyyeeyyyyK.",".KyeeyyyyyK.","KyeyyyyyyyyK","KyyyyyyyyyyK","KyyyyyyyyyyK",".KyyyyyyyyK.",".KyyyyyyyyK.","..KKyyyyKK..","....KKKK....","............"],
   bag:[".....KK.....","....KccK....","...KcccK....","...KKKKK....","..KnnnnnK...",".KnnyyynnK..","KnnyKKKynnK.","KnnyyyyynnK.","KnnnnnnnnnK.",".KnnnnnnnK..","..KKKKKKK...","............"],
@@ -19,6 +19,18 @@ export const GRID={
   nehan:[".....KK.....","....KwwK....","...KwwwwK...","..KwmwwmwK..",".KwmwwwwmwK.",".KmwwwwwwmK.",".KwmwwwwmwK.","..KwwwwwwK..","...KwwwwK...","....KKKK....","..bBbBbBbB..",".BbBbBbBbBb."],
   rinne:["....KKKK....","..KKeeeeKK..",".KeyyKKyyeK.",".KyyKyyKyyK.","KeyKyKKyKyeK","KyKKyKKyKKyK","KeyKyKKyKyeK",".KyyKyyKyyK.",".KeyyKKyyeK.","..KKeeeeKK..","....KKKK....","............"],
   shumisen:["............",".....ww.....","....wwww....","...PwwwwP...","..PPssSSPP..",".PPsssssSPP.",".PsssssssSP.","PPPsssssPPPP",".PPPPPPPPPP.",".KKKKKKKKKK.","............","............"],
+  notify:["...KKKKKK...","..KssssssK.M","..KssssssKMM","..KssssssK.M","..KsyyyysK..","..KssssssK..","..KsyyyysK..","..KssssssK..","..KKKKKKKK..","............","............","............"],
+  gacha:["....KKKK....","..KKMMMMKK..",".KMMMMMMMMK.","KMMMMMMMMMMK","KMMMKKKKMMMK","KwwwwKKwwwwK","KwwwwKKwwwwK","KwwwKKKKwwwK",".KwwwwwwwwK.","..KKwwwwKK..","....KKKK....","...NN..NN..."],
+  luckygoods:[".....KK.....","....KyyK....","...Ky..yK...","...nnnnnn...",".KnAAAAAAnK.","KnAyyyyyyAnK","KnAyKKKKyAnK","KnAyKAAKyAnK","KnAyyyyyyAnK",".KnAAAAAAnK.","..KKKKKKKK..","............"],
+  tapioca:["....KKKK....","...KwwwwK...","...KwwwwK...",".KKCCCCCCKK.","KCCCCCCCCCCK","KCCKKCCKKCCK","KCCCCCCCCCCK","KCCKKCCKKCCK","KCCCCCCCCCCK",".KCCCCCCCCK.","..KKKKKKKK..","............"],
+  snsscroll:["...KKKKKK...","..KccccccK..","..KcMcccMc..","..KccMMccc..","..KcccMcccK.","..KccccccK..","..KccccccK..","..KKKKKKKK..","......K.....","............","............","............"],
+  fastfood:["............","...yyyyyy...","..yyyyyyyy..","..GgGgGgGg..",".yyyyyyyyyy.",".rrrrrrrrrr.",".yyyyyyyyyy.","..NNNNNNNN..","............","............","............","............"],
+  ribopay:["............",".KKKKKKKKKK.",".KDDDDDDDDK.",".KDDDDDDDDK.",".KDwwwwwwDK.",".KDDDDDDDDK.",".KDyyyyyyDK.",".KDDDDDDDDK.",".KKKKKKKKKK.","............","............","............"],
+  kyabakura:["KM........MK",".KM......MK.","..KMMMMMMK..","...KppppK...","....KppK....","....KppK....","...KyyyyK...","..Kyyyyyy...",".KyyyyyyyK..","....KK......","............","............"],
+  pachinko:[".KKKKKKKKKK.",".KyyKKyyKKK.",".KyyKKyyKKK.",".KKKKKKKKKK.",".KrrKKggKKK.",".KrrKKggKKK.",".KKKKKKKKKK.",".KyyKKrrKKK.",".KyyKKrrKKK.",".KKKKKKKKKK.","............","............"],
+  vipcasino:["....KKKK....","..KKyyyyKK..",".KyPwwwwPyK.","KyPwwyyywPyK","KyPwywKwywPy","KyPwywKwywPy","KyPwwyyywPyK","KyPwwwwwwPyK",".KyPwwwwPyK.","..KKyyyyKK..","....KKKK....","............"],
+  cryptoday:["............","..A.......r.","..A..A....r.","..A..A.r..r.","..A..A.r..r.","..A..A.r.rr.","..A..A.r.rr.","..A..A.r.rr.","............","............","............","............"],
+  metaverse:["............","..KKKKKKKK..",".KKKKKKKKKK.",".KCCKKKKCCK.",".KCCCKKCCCK.",".KKKKKKKKKK.","..KK....KK..","............","............","............","............","............"],
   catSleep:["............","...K....K...","..KtK..KtK..","..KttKKttK..",".KttttttttK.",".KtKttttKtK.",".KtttmttttK.",".KttttttttK.",".KttttttttK.","..KKttttKK..","...KKKKKK...","............"],
   catLoaf:["............","..K......K..","..KsK..KsK..","..KssssssssK",".KssssssssK.",".KsKsssssKsK",".KsssmssssK.",".KssssssssK.",".KssssssssK.",".KssssssssK.",".KKKKKKKKKK.","............"],
   catStretch:["............","............",".K........K.","KcKKKKKKKcK.","KccccccccccK",".KccKcccKccK",".KcccmccccK.","..KccccccK..","...KKKKKKK..","..K.....K...","............","............"],
