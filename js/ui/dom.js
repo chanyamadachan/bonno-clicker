@@ -2,6 +2,7 @@ import { state } from "../core/state.js";
 import { ac, applyMute } from "../core/audio.js";
 import { save } from "../core/save.js";
 import { BUILDINGS } from "../data/buildings.js";
+import { BUILDINGS_SHU } from "../data/buildings-shu.js";
 import { UP } from "../data/upgrades.js";
 import { PERKS } from "../data/perks.js";
 import { ACH } from "../data/achievements.js";
@@ -27,7 +28,7 @@ export function shake(){const c=$("colMok");c.classList.remove("shake");void c.o
 
 const panelB=$("panelB"),upList=$("upList"),perkList=$("perkList"),achGrid=$("achGrid");
 export const rows={};
-BUILDINGS.forEach(b=>{const el=document.createElement("button");el.className="bld hide";
+BUILDINGS.concat(BUILDINGS_SHU).forEach(b=>{const el=document.createElement("button");el.className="bld hide";
   el.innerHTML=`<span class="cnt"></span><span class="icon pix"></span><span class="body"><span class="name">${b.name}</span><span class="rate"></span></span><span class="right"><span class="cost"></span><span class="own"></span></span><span class="prog"></span>`;
   el.addEventListener("click",()=>buyN(b));panelB.appendChild(el);
   rows[b.id]={el,icon:el.querySelector(".icon"),nameEl:el.querySelector(".name"),cost:el.querySelector(".cost"),rate:el.querySelector(".rate"),own:el.querySelector(".own"),cnt:el.querySelector(".cnt"),prog:el.querySelector(".prog"),costVal:1e99,aff:false,revealed:false,mode:""};});

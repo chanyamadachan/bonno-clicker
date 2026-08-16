@@ -1,12 +1,20 @@
-import { BUILDINGS } from "../data/buildings.js";
+import { BUILDINGS, LOWIDS } from "../data/buildings.js";
+import { BUILDINGS_SHU, LOWIDS_SHU } from "../data/buildings-shu.js";
 
 export const KEY = "bonno-clicker-save-v9";
 
 export function fresh(){
   const own={};
   BUILDINGS.forEach(b=>own[b.id]=0);
+  BUILDINGS_SHU.forEach(b=>own[b.id]=0);
   return {bonno:0,total:0,clicks:0,own,got:{},upg:{},perks:{},spent:0,gou:0,kudoku:0,rebirths:0,feversDone:0,bellStrikes:0,crits:0,luckies:0,frenzies:0,houyous:0,maxCombo:0,maxComboMs:0,cps:0,muted:false,faction:null};
 }
+
+// 陣営ごとの発生源データセットを切り替える。faction===null（未選択）の間は仏教陣営(既存データ)を既定値として扱う。
+export function activeBuildings(){ return state.s.faction==="shu" ? BUILDINGS_SHU : BUILDINGS; }
+export function activeLowids(){ return state.s.faction==="shu" ? LOWIDS_SHU : LOWIDS; }
+// 選ばれなかった側の発生源データセット。陣営選択前後でショップDOMに残る取りこぼしを掃除する用途。
+export function inactiveBuildings(){ return state.s.faction==="shu" ? BUILDINGS : BUILDINGS_SHU; }
 
 export const state = {
   s: fresh(),

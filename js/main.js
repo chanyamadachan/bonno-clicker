@@ -1,9 +1,8 @@
-import { state, availKudoku } from "./core/state.js";
+import { state, availKudoku, activeBuildings } from "./core/state.js";
 import { fmt, fmtRate } from "./core/format.js";
 import { baseMult, feverOn, frenzyOn, houyouOn, lowCount, mokTierOf, rankIdx, rankOf, comboMul, computeUp } from "./core/formulas.js";
 import { buildSprites } from "./core/sprites.js";
 import { load, save, offlineWelcome } from "./core/save.js";
-import { BUILDINGS } from "./data/buildings.js";
 import { NEWS } from "./data/content.js";
 import { $, zone, tk } from "./ui/dom.js";
 import { applyMokTier, tierUp, initSceneryTooltip } from "./ui/scenery.js";
@@ -26,7 +25,7 @@ function frame(){
   let mm=1;if(state.momoUntil>t){mm=1+(state.momoPeak-1)*((state.momoUntil-t)/(state.momoDur*1000));}
   const hy=houyouOn()?(2+lowCount()*up.houyouPer):1;
   state.curMult=baseMult()*(feverOn()?(10+up.feverMulAdd):1)*mm*hy;
-  let raw=0;for(const b of BUILDINGS)raw+=s.own[b.id]*b.cps*up.bld[b.id];s.cps=raw*state.curMult;
+  let raw=0;for(const b of activeBuildings())raw+=s.own[b.id]*b.cps*up.bld[b.id];s.cps=raw*state.curMult;
   if(s.cps>0){const g=s.cps*dt;s.bonno+=g;s.total+=g;}
   if(s.bonno>state.lastPeak)state.lastPeak=s.bonno;
   feverTick(t);

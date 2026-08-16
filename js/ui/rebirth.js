@@ -1,9 +1,8 @@
-import { state, fresh, availKudoku } from "../core/state.js";
+import { state, fresh, availKudoku, activeBuildings } from "../core/state.js";
 import { now } from "../core/format.js";
 import { canRebirth, computeUp } from "../core/formulas.js";
 import { chime, fanfare } from "../core/audio.js";
 import { save, wipe } from "../core/save.js";
-import { BUILDINGS } from "../data/buildings.js";
 import { PERKS } from "../data/perks.js";
 import { $, ask, perkCards } from "./dom.js";
 import { check } from "./stats.js";
@@ -13,8 +12,8 @@ $("rebirth").addEventListener("click",()=>{if(!canRebirth())return;doRebirth();}
 
 function doRebirth(){
   const s=state.s;
-  s.kudoku+=1;s.rebirths++;s.bonno=0;s.upg={};BUILDINGS.forEach(b=>s.own[b.id]=0);state.combo=0;state.comboActive=false;state.tapGaps.length=0;computeUp();
-  if(state.up.startOwn>0)BUILDINGS.forEach(b=>s.own[b.id]=state.up.startOwn);
+  s.kudoku+=1;s.rebirths++;s.bonno=0;s.upg={};Object.keys(s.own).forEach(id=>s.own[id]=0);state.combo=0;state.comboActive=false;state.tapGaps.length=0;computeUp();
+  if(state.up.startOwn>0)activeBuildings().forEach(b=>s.own[b.id]=state.up.startOwn);
   if(state.up.startBonnoFrac>0)s.bonno=Math.floor(state.up.startBonnoFrac*state.lastPeak);
   state.lastPeak=s.bonno;state.pendingMomo=true;chime();state.dirty=true;check();save();openGokuraku();
 }
