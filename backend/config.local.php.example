@@ -1,0 +1,11 @@
+<?php
+declare(strict_types=1);
+// このファイルを config.local.php としてコピーし、実際の値を入れる。
+// config.local.php は .gitignore 対象(本番の接続情報をリポジトリに含めないため)。
+
+$DB_HOST = 'mysqlXXX.db.sakura.ne.jp';
+$DB_NAME = 'chanyama_bonno_clicker';
+$DB_USER = 'chanyama_bonno_clicker';
+$DB_PASS = 'xxxxxxxxxxxxxxxx';
+
+$ALLOWED_ORIGINS = ['https://bonno-clicker.chanyama.com'];

@@ -1,0 +1,8 @@
+# backend/.htaccess の全拒否を、このサブツリー(APIエンドポイント)のみ上書きして許可する。
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Allow from all
+</IfModule>
