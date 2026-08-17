@@ -54,6 +54,17 @@ CREATE TABLE IF NOT EXISTS rooms (
   status ENUM('waiting','active','finished') NOT NULL DEFAULT 'waiting'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ルーム対戦(3.7)の参加者ロースター。roomsテーブル単体では参加者一覧・人数上限判定ができないため
+-- 実装レベルで追加(9.3 Step 3-2。企画書4.4の最小構成には明記されていないが、参加人数の判定・表示に必須)。
+CREATE TABLE IF NOT EXISTS room_players (
+  room_id BIGINT UNSIGNED NOT NULL,
+  player_id VARCHAR(64) NOT NULL,
+  faction ENUM('kon','shu') NOT NULL,
+  joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (room_id, player_id),
+  INDEX idx_player (player_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- 送信レート制限用(企画設計書 8.3): player_idごとの直近ウィンドウの送信回数。
 CREATE TABLE IF NOT EXISTS rate_limits (
   player_id VARCHAR(64) NOT NULL PRIMARY KEY,

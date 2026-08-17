@@ -14,14 +14,21 @@ async function sendContribution(){
   if(delta <= 0) return;
   inFlight = true;
   try{
+    const body = { playerId: s.playerId, faction: s.faction, delta, clientTs: Date.now() };
+    if(s.roomCode) body.roomCode = s.roomCode; // ルーム対戦中(3.7)は同じ増分をルーム側にも計上させる
     const res = await fetch(API_BASE + "/contribute.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerId: s.playerId, faction: s.faction, delta, clientTs: Date.now() }),
+      body: JSON.stringify(body),
     });
     if(res.ok){
       // 送信できた分だけ既報告済みとして進める。失敗時はここを進めず、次回の間隔で差分がそのまま再送される(best-effort、4.2)。
       s.lastReportedTotal = s.total;
+      try{
+        const data = await res.json();
+        // ルームが終了・消滅済み等でサーバー側が計上できなかった場合、クライアント側の紐付けも解除する(9.3 Step 3-2)。
+        if(data && data.roomError && s.roomCode) s.roomCode = null;
+      }catch(e){}
       save();
     }
   }catch(e){

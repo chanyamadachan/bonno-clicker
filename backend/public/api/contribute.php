@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../lib/security.php';
 require __DIR__ . '/../../lib/cp.php';
+require __DIR__ . '/../../lib/room.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -33,6 +34,8 @@ $playerId = isset($body['playerId']) ? (string)$body['playerId'] : '';
 $faction = isset($body['faction']) ? (string)$body['faction'] : '';
 $delta = isset($body['delta']) ? (float)$body['delta'] : -1.0;
 $clientTs = isset($body['clientTs']) ? (int)$body['clientTs'] : null;
+// ルーム対戦中(3.7)の任意フィールド。未参加・未指定なら従来どおりグローバルのみに計上する。
+$roomCodeRaw = isset($body['roomCode']) ? strtoupper(trim((string)$body['roomCode'])) : '';
 
 if (!preg_match('/^[A-Za-z0-9_-]{8,64}$/', $playerId)) {
   http_response_code(400); echo json_encode(['error' => 'invalid_player_id']); exit;
@@ -55,6 +58,32 @@ if (!bonno_rate_limit_check($pdo, $playerId, 60, 20)) {
 
 $delta = bonno_clamp_delta($delta);
 
+// ルームコードが指定されていれば、参加資格を検証してroom_idを解決する。
+// 無効・終了済み・未参加などの理由で解決できなくても、グローバルへの報告自体は失敗させない
+// (ルームの状態変化がその場のプレイをブロックしない設計、4.2の失敗時ベストエフォート方針を踏襲)。
+$roomId = null;
+$roomError = null;
+if ($roomCodeRaw !== '') {
+  if (!preg_match('/^[A-Z0-9]{6}$/', $roomCodeRaw)) {
+    $roomError = 'invalid_room_code';
+  } else {
+    $roomRow = bonno_room_by_code($pdo, $roomCodeRaw);
+    if ($roomRow === null) {
+      $roomError = 'room_not_found';
+    } elseif (bonno_room_effective_status($pdo, $roomRow) === 'finished') {
+      $roomError = 'room_finished';
+    } else {
+      $memberStmt = $pdo->prepare('SELECT 1 FROM room_players WHERE room_id = ? AND player_id = ?');
+      $memberStmt->execute([$roomRow['id'], $playerId]);
+      if ($memberStmt->fetchColumn()) {
+        $roomId = (int)$roomRow['id'];
+      } else {
+        $roomError = 'not_room_member';
+      }
+    }
+  }
+}
+
 // 直近窓の判定・集計は常にサーバー受信時刻(reported_at)を正とする。clientTsは参考値として保存するのみ(8.3)。
 $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 
@@ -76,5 +105,17 @@ $insert = $pdo->prepare(
 );
 $insert->execute([$playerId, $faction, $delta, $cp, $clientTs, $now, hash('sha256', bonno_client_ip())]);
 
+// ルーム参加中は同じ増分をルーム側にも計上する(グローバルとルームは独立した別レイヤーとして両立させる、3.7)。
+// ルームは母数の少ない閉じた対戦のため、グローバル人口比のboost(3.4)は掛けず素のCPのみを積む。
+$roomCp = null;
+if ($roomId !== null) {
+  $roomCp = bonno_compute_cp($delta, $CP_K);
+  $insertRoom = $pdo->prepare(
+    'INSERT INTO contributions (player_id, faction, raw_delta, cp, room_id, client_ts, reported_at, ip_hash)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  );
+  $insertRoom->execute([$playerId, $faction, $delta, $roomCp, $roomId, $clientTs, $now, hash('sha256', bonno_client_ip())]);
+}
+
 http_response_code(202);
-echo json_encode(['ok' => true, 'cp' => $cp, 'boost' => $boost]);
+echo json_encode(['ok' => true, 'cp' => $cp, 'boost' => $boost, 'roomCp' => $roomCp, 'roomError' => $roomError]);

@@ -13,7 +13,7 @@ export function fresh(){
   const own={};
   BUILDINGS.forEach(b=>own[b.id]=0);
   BUILDINGS_SHU.forEach(b=>own[b.id]=0);
-  return {bonno:0,total:0,clicks:0,own,got:{},upg:{},perks:{},spent:0,gou:0,kudoku:0,rebirths:0,feversDone:0,bellStrikes:0,crits:0,luckies:0,frenzies:0,houyous:0,maxCombo:0,maxComboMs:0,cps:0,muted:false,faction:null,playerId:genPlayerId(),lastReportedTotal:0};
+  return {bonno:0,total:0,clicks:0,own,got:{},upg:{},perks:{},spent:0,gou:0,kudoku:0,rebirths:0,feversDone:0,bellStrikes:0,crits:0,luckies:0,frenzies:0,houyous:0,maxCombo:0,maxComboMs:0,cps:0,muted:false,faction:null,playerId:genPlayerId(),lastReportedTotal:0,roomCode:null};
 }
 
 // 陣営ごとの発生源データセットを切り替える。faction===null（未選択）の間は仏教陣営(既存データ)を既定値として扱う。

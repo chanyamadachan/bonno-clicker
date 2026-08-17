@@ -29,6 +29,10 @@
       <div class="chip"><span class="k">業</span><span class="v" id="mGou">0</span></div>
       <div class="chip mult"><span class="k">倍率</span><span class="v" id="mMult">×1.00</span></div>
       <div class="chip kudoku"><span class="k">功徳</span><span class="v" id="mKudoku">0</span></div>
+      <div class="chip room" id="roomChip" title="友達を招待して少人数だけの陣営対戦を始める">
+        <span class="k">ルーム</span>
+        <span class="v" id="roomChipText">対戦する</span>
+      </div>
       <div class="chip sound" id="sound" title="音のオン/オフ">🔔</div>
     </div>
   </div>
@@ -138,6 +142,48 @@
       </button>
     </div>
     <button class="fskip" id="fSkip">まだ選ばない（観戦する）</button>
+  </div></div>
+
+  <div class="roomModal" id="roomModal"><div class="rbox">
+    <button class="rclose" id="roomClose" title="閉じる">×</button>
+
+    <div id="roomHome">
+      <div class="rtitle">ルーム対戦</div>
+      <div class="rsub">友達を誘って、1対1〜数人だけの閉じた陣営対戦を始める。</div>
+      <div class="rtabs">
+        <button class="rtab on" id="rtabCreate">ルームを作る</button>
+        <button class="rtab" id="rtabJoin">合言葉で参加</button>
+      </div>
+      <div id="roomCreatePane">
+        <label class="rfield">人数上限
+          <select id="roomMaxPlayers"><option value="2">2人（1対1）</option><option value="4">4人</option><option value="8">8人</option></select>
+        </label>
+        <label class="rfield">対戦期間
+          <select id="roomDuration"><option value="15">15分スプリント</option><option value="1440" selected>24時間の短期決戦</option><option value="10080">1週間のロング戦</option></select>
+        </label>
+        <button class="rmainbtn" id="roomCreateBtn">ルームを作る</button>
+      </div>
+      <div id="roomJoinPane" style="display:none">
+        <label class="rfield">合言葉（6文字）
+          <input type="text" id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="ABCDEF">
+        </label>
+        <button class="rmainbtn" id="roomJoinBtn">参加する</button>
+      </div>
+      <div class="rerr" id="roomError"></div>
+    </div>
+
+    <div id="roomActive" style="display:none">
+      <div class="rtitle">ルーム対戦中</div>
+      <div class="rcode">合言葉　<b id="roomCodeDisplay">------</b></div>
+      <div class="rsub">この合言葉を友達に伝えて参加してもらおう。</div>
+      <div class="rcountdown" id="roomCountdown">--:--:--</div>
+      <div class="wtrack room"><i class="wmarker" id="roomMarker"></i></div>
+      <div class="rscoreline"><span id="roomKonCP">仏教 0</span><span id="roomShuCP">煩悩 0</span></div>
+      <div class="rparticipants" id="roomParticipants">参加者 1人</div>
+      <div class="rresult" id="roomResult"></div>
+      <button class="rmainbtn" id="roomAgainBtn" style="display:none">同じ設定でもう一戦</button>
+      <button class="rleavebtn" id="roomLeaveBtn">退出する</button>
+    </div>
   </div></div>
 
   <div class="goku" id="gokuraku"><div class="gbox">
