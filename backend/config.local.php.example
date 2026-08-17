@@ -9,3 +9,6 @@ $DB_USER = 'chanyama_bonno_clicker';
 $DB_PASS = 'xxxxxxxxxxxxxxxx';
 
 $ALLOWED_ORIGINS = ['https://bonno-clicker.chanyama.com'];
+
+// 天秤が短時間で不自然に急変した際にDiscord/Slack等へ通知したい場合のみ設定する(任意)。
+// $ALERT_WEBHOOK_URL = 'https://discord.com/api/webhooks/xxxx/xxxx';

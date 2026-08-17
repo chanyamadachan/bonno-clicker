@@ -15,26 +15,32 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
 }
 
 $pdo = bonno_pdo();
-$windowHours = 48; // 直近48時間の移動窓(企画設計書 3.3)
+$windowHours = $CONTRIB_WINDOW_HOURS; // 直近窓の幅(企画設計書 3.3、config.phpで一元管理)
 $seasonId = bonno_current_season_id($pdo);
 
 // グローバル集計のみ対象(room_id指定のルーム対戦は含めない)。常にサーバー時刻基準で窓を切る。
+// プレイヤーに直接見える天秤の値なので、単発の異常送信が振り切れないようwinsorizeしてから合算する(0.1-2)。
 $stmt = $pdo->prepare(
-  'SELECT faction, COALESCE(SUM(cp),0) AS cp_sum, COUNT(DISTINCT player_id) AS active_players
+  'SELECT player_id, faction, cp
    FROM contributions
-   WHERE reported_at >= (NOW() - INTERVAL ? HOUR) AND room_id IS NULL
-   GROUP BY faction'
+   WHERE reported_at >= (NOW() - INTERVAL ? HOUR) AND room_id IS NULL'
 );
 $stmt->execute([$windowHours]);
 
-$cp = ['kon' => 0.0, 'shu' => 0.0];
-$active = ['kon' => 0, 'shu' => 0];
+$rawCp = ['kon' => [], 'shu' => []];
+$players = ['kon' => [], 'shu' => []];
 foreach ($stmt->fetchAll() as $r) {
   $f = (string)$r['faction'];
-  if (isset($cp[$f])) {
-    $cp[$f] = (float)$r['cp_sum'];
-    $active[$f] = (int)$r['active_players'];
-  }
+  if (!isset($rawCp[$f])) continue;
+  $rawCp[$f][] = (float)$r['cp'];
+  $players[$f][(string)$r['player_id']] = true;
+}
+
+$cp = ['kon' => 0.0, 'shu' => 0.0];
+$active = ['kon' => 0, 'shu' => 0];
+foreach (['kon', 'shu'] as $f) {
+  $cp[$f] = array_sum(bonno_winsorize_cp($rawCp[$f], $WINSORIZE_PCT));
+  $active[$f] = count($players[$f]);
 }
 
 $totalActive = $active['kon'] + $active['shu'];

@@ -54,8 +54,6 @@ if (!bonno_rate_limit_check($pdo, $playerId, 60, 20)) {
 }
 
 $delta = bonno_clamp_delta($delta);
-$k = 12.0; // CP係数(暫定値。実データを見て4.4のfaction_totals運用と合わせて調整する)
-$cp = bonno_compute_cp($delta, $k);
 
 // 直近窓の判定・集計は常にサーバー受信時刻(reported_at)を正とする。clientTsは参考値として保存するのみ(8.3)。
 $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
@@ -66,6 +64,12 @@ $upsertPlayer = $pdo->prepare(
 );
 $upsertPlayer->execute([$playerId, $faction, $now, $now]);
 
+// 少数派救済ブースト(3.4)を送信時点の陣営人口比から算出し、CPに実際に反映する(0.3-B)。
+$active = bonno_active_player_counts($pdo, $CONTRIB_WINDOW_HOURS);
+$totalActive = $active['kon'] + $active['shu'];
+$boost = bonno_compute_boost($totalActive, $active[$faction] ?? 0);
+$cp = bonno_compute_cp($delta, $CP_K) * $boost;
+
 $insert = $pdo->prepare(
   'INSERT INTO contributions (player_id, faction, raw_delta, cp, room_id, client_ts, reported_at, ip_hash)
    VALUES (?, ?, ?, ?, NULL, ?, ?, ?)'
@@ -73,4 +77,4 @@ $insert = $pdo->prepare(
 $insert->execute([$playerId, $faction, $delta, $cp, $clientTs, $now, hash('sha256', bonno_client_ip())]);
 
 http_response_code(202);
-echo json_encode(['ok' => true, 'cp' => $cp]);
+echo json_encode(['ok' => true, 'cp' => $cp, 'boost' => $boost]);

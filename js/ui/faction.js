@@ -23,6 +23,9 @@ export function maybeShowFactionPrompt(){
   if(state.s.faction===null && !skippedThisSession) openFactionModal();
 }
 
-$("chooseKon").addEventListener("click", ()=>chooseFaction("kon"));
-$("chooseShu").addEventListener("click", ()=>chooseFaction("shu"));
-$("fSkip").addEventListener("click", ()=>{ skippedThisSession=true; closeFactionModal(); });
+// トップレベルで即時登録すると循環import経路で壊れうるため、main.jsの起動シーケンスから呼ぶ(CLAUDE.md「循環importの注意」、0.3-E)。
+export function initFactionUI(){
+  $("chooseKon").addEventListener("click", ()=>chooseFaction("kon"));
+  $("chooseShu").addEventListener("click", ()=>chooseFaction("shu"));
+  $("fSkip").addEventListener("click", ()=>{ skippedThisSession=true; closeFactionModal(); });
+}

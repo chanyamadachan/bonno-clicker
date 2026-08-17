@@ -11,7 +11,7 @@ import { renderShop, updateAfford } from "./ui/shop.js";
 import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check, rotateNews } from "./ui/stats.js";
 import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
-import { maybeShowFactionPrompt } from "./ui/faction.js";
+import { maybeShowFactionPrompt, initFactionUI } from "./ui/faction.js";
 import { renderWorldGauge } from "./ui/world.js";
 import { tickFactionSend } from "./core/faction.js";
 import "./ui/click.js";
@@ -63,6 +63,7 @@ async function init(){
   addEventListener("resize", sizeRain);
   tk.innerHTML = NEWS[0]();
   if(state.s.clicks < 1) zone.classList.add("hint");
+  initFactionUI();
   maybeShowFactionPrompt();
   state.dirty = true;
   requestAnimationFrame(frame);
