@@ -1,5 +1,6 @@
 import { state } from "./state.js";
 import { save } from "./save.js";
+import { seijakuActive } from "./formulas.js";
 
 const API_BASE = "/backend/public/api";
 const SEND_INTERVAL_MS = 3 * 60 * 1000; // 3分間隔(企画設計書 4.2)
@@ -16,6 +17,7 @@ async function sendContribution(){
   try{
     const body = { playerId: s.playerId, faction: s.faction, delta, clientTs: Date.now() };
     if(s.roomCode) body.roomCode = s.roomCode; // ルーム対戦中(3.7)は同じ増分をルーム側にも計上させる
+    if(seijakuActive()) body.seijaku = true; // 静寂モード中(5.12)はCP変換係数+25%をサーバー側に反映させる
     const res = await fetch(API_BASE + "/contribute.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

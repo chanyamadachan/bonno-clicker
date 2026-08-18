@@ -7,7 +7,7 @@ import { toastEl } from "../ui/dom.js";
 
 const store=(typeof window!=="undefined"&&window.storage)?window.storage:null;
 
-export async function save(){if(!store)return;const s=state.s;try{await store.set(KEY,JSON.stringify({bonno:s.bonno,total:s.total,clicks:s.clicks,own:s.own,got:s.got,upg:s.upg,perks:s.perks,spent:s.spent,gou:s.gou,kudoku:s.kudoku,rebirths:s.rebirths,feversDone:s.feversDone,bellStrikes:s.bellStrikes,crits:s.crits,luckies:s.luckies,frenzies:s.frenzies,houyous:s.houyous,maxCombo:s.maxCombo,maxComboMs:s.maxComboMs,muted:s.muted,faction:s.faction,playerId:s.playerId,lastReportedTotal:s.lastReportedTotal,roomCode:s.roomCode,lastSeen:Date.now()}),false);}catch(e){}}
+export async function save(){if(!store)return;const s=state.s;try{await store.set(KEY,JSON.stringify({bonno:s.bonno,total:s.total,clicks:s.clicks,own:s.own,got:s.got,upg:s.upg,perks:s.perks,spent:s.spent,gou:s.gou,kudoku:s.kudoku,rebirths:s.rebirths,feversDone:s.feversDone,bellStrikes:s.bellStrikes,crits:s.crits,luckies:s.luckies,frenzies:s.frenzies,houyous:s.houyous,maxCombo:s.maxCombo,maxComboMs:s.maxComboMs,muted:s.muted,faction:s.faction,playerId:s.playerId,lastReportedTotal:s.lastReportedTotal,roomCode:s.roomCode,bousouUses:s.bousouUses,bousouDay:s.bousouDay,lastSeen:Date.now()}),false);}catch(e){}}
 
 export async function wipe(){if(!store)return;try{await store.delete(KEY,false);}catch(e){}}
 
@@ -24,7 +24,7 @@ export async function load(){
       const r=await store.get(KEY,false);
       if(r&&r.value){
         const d=JSON.parse(r.value);
-        s.bonno=d.bonno||0;s.total=d.total||0;s.clicks=d.clicks||0;s.gou=d.gou||0;s.kudoku=d.kudoku||0;s.rebirths=d.rebirths||0;s.feversDone=d.feversDone||0;s.bellStrikes=d.bellStrikes||0;s.crits=d.crits||0;s.luckies=d.luckies||0;s.frenzies=d.frenzies||0;s.houyous=d.houyous||0;s.maxCombo=d.maxCombo||0;s.maxComboMs=d.maxComboMs||0;s.muted=!!d.muted;s.spent=d.spent||0;s.faction=d.faction||null;s.playerId=d.playerId||s.playerId;s.lastReportedTotal=d.lastReportedTotal||0;s.roomCode=d.roomCode||null;
+        s.bonno=d.bonno||0;s.total=d.total||0;s.clicks=d.clicks||0;s.gou=d.gou||0;s.kudoku=d.kudoku||0;s.rebirths=d.rebirths||0;s.feversDone=d.feversDone||0;s.bellStrikes=d.bellStrikes||0;s.crits=d.crits||0;s.luckies=d.luckies||0;s.frenzies=d.frenzies||0;s.houyous=d.houyous||0;s.maxCombo=d.maxCombo||0;s.maxComboMs=d.maxComboMs||0;s.muted=!!d.muted;s.spent=d.spent||0;s.faction=d.faction||null;s.playerId=d.playerId||s.playerId;s.lastReportedTotal=d.lastReportedTotal||0;s.roomCode=d.roomCode||null;s.bousouUses=d.bousouUses||0;s.bousouDay=d.bousouDay||"";
         BUILDINGS.forEach(b=>s.own[b.id]=(d.own&&d.own[b.id])||0);
         BUILDINGS_SHU.forEach(b=>s.own[b.id]=(d.own&&d.own[b.id])||0);
         s.got=d.got||{};s.upg=d.upg||{};s.perks=d.perks||{};

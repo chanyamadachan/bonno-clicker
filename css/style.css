@@ -116,6 +116,13 @@
   .clickzone.hit #bellBody{animation:bellhit .16s ease}
   .clickzone.hit #shumoku{animation:strike .16s ease}
   .clickzone.morph #mokSvg{animation:morph .6s ease}
+  .clickzone.mode-warmup .mokwrap{animation:breathe 3.6s ease-in-out infinite,seijakuWarm 1.2s ease-in-out infinite}
+  .clickzone.mode-seijaku .mokwrap{animation:breathe 3.6s ease-in-out infinite,seijakuGlow 2.2s ease-in-out infinite}
+  .clickzone.mode-bousou .mokwrap{animation:breathe 3.6s ease-in-out infinite,bousouGlow .45s ease-in-out infinite}
+  .clickzone.mode-cooldown .mokwrap{filter:saturate(.45) brightness(.72)}
+  @keyframes seijakuWarm{0%,100%{filter:drop-shadow(0 0 3px rgba(120,180,255,.2))}50%{filter:drop-shadow(0 0 10px rgba(140,200,255,.45))}}
+  @keyframes seijakuGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(120,180,255,.4))}50%{filter:drop-shadow(0 0 24px rgba(150,210,255,.9))}}
+  @keyframes bousouGlow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,50,50,.45))}50%{filter:drop-shadow(0 0 28px rgba(255,20,20,.95))}}
   @keyframes breathe{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.05) translateY(-7px)}}
   @keyframes squish{0%{transform:scale(1,1)}28%{transform:scale(1.14,.84)}58%{transform:scale(.95,1.06)}100%{transform:scale(1,1)}}
   @keyframes bellhit{0%{transform:scale(1,1)}40%{transform:scale(1.07,.96)}100%{transform:scale(1,1)}}
@@ -295,6 +302,13 @@
   .rparticipants{font-size:11px;color:#8a7a5a;margin-top:8px}
   .rresult{font-family:var(--serif);font-size:15px;color:var(--gold2);min-height:20px;margin-top:8px}
   .rleavebtn{display:block;margin:10px auto 0;font-size:11px;color:#a89468;background:none;border:none;cursor:pointer;text-decoration:underline}
+
+  .modebar{display:flex;flex-direction:column;align-items:center;gap:4px;margin:4px 0}
+  .modebtn{display:none;font-family:var(--serif);font-size:12.5px;padding:6px 18px;border-radius:14px;cursor:pointer;transition:opacity .15s}
+  .modebtn:disabled{cursor:default;opacity:.55}
+  .modebtn.kon{border:1.5px solid var(--kon);background:linear-gradient(180deg,#2a3f52,#1a2833);color:#bcd8f2}
+  .modebtn.shu{border:1.5px solid var(--shu);background:linear-gradient(180deg,#4a1626,#2a0d16);color:#ffc4d0}
+  .modestatus{font-size:10.5px;color:#a89468;min-height:13px}
 
   footer{max-width:1300px;margin:16px auto 0;padding:10px;border-top:1px solid #4a3521;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
   footer .note{font-size:11px;color:#9c8358;line-height:1.6}

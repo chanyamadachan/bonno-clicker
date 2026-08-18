@@ -13,7 +13,7 @@ export function fresh(){
   const own={};
   BUILDINGS.forEach(b=>own[b.id]=0);
   BUILDINGS_SHU.forEach(b=>own[b.id]=0);
-  return {bonno:0,total:0,clicks:0,own,got:{},upg:{},perks:{},spent:0,gou:0,kudoku:0,rebirths:0,feversDone:0,bellStrikes:0,crits:0,luckies:0,frenzies:0,houyous:0,maxCombo:0,maxComboMs:0,cps:0,muted:false,faction:null,playerId:genPlayerId(),lastReportedTotal:0,roomCode:null};
+  return {bonno:0,total:0,clicks:0,own,got:{},upg:{},perks:{},spent:0,gou:0,kudoku:0,rebirths:0,feversDone:0,bellStrikes:0,crits:0,luckies:0,frenzies:0,houyous:0,maxCombo:0,maxComboMs:0,cps:0,muted:false,faction:null,playerId:genPlayerId(),lastReportedTotal:0,roomCode:null,bousouUses:0,bousouDay:""};
 }
 
 // 陣営ごとの発生源データセットを切り替える。faction===null（未選択）の間は仏教陣営(既存データ)を既定値として扱う。
@@ -43,6 +43,14 @@ export const state = {
   comboActive: false,
   comboStart: 0,
   clickHeat: 0,
+  // 陣営固有メカニクス「静寂」「暴走」(企画設計書 5.12 / 9.3 Step 3-3)。
+  // 発動回数(bousouUses/bousouDay)以外は端末を跨いだ意味を持たない一時状態のためsave()の対象外にする
+  // (既存のfever/frenzy/houyouUntil等と同じ扱い、再読み込みで解除されても実害が小さい)。
+  seijakuOn: false,
+  seijakuWarmupUntil: 0,
+  seijakuCooldownUntil: 0,
+  bousouUntil: 0,
+  bousouCooldownUntil: 0,
 };
 
 export function upgCount(){ return Object.keys(state.s.upg).length; }

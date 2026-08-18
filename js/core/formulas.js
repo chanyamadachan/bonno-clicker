@@ -22,10 +22,23 @@ export function computeUp(){
 export function feverOn(){return state.fever.until>now();}
 export function frenzyOn(){return state.frenzyUntil>now();}
 export function houyouOn(){return state.houyouUntil>now();}
+
+// 陣営固有メカニクス「静寂」「暴走」(企画設計書 5.12 / 9.3 Step 3-3)。
+export function seijakuWarmingUp(){return state.s.faction==="kon"&&state.seijakuOn&&now()<state.seijakuWarmupUntil;}
+export function seijakuActive(){return state.s.faction==="kon"&&state.seijakuOn&&now()>=state.seijakuWarmupUntil;}
+export function seijakuOnCooldown(){return now()<state.seijakuCooldownUntil;}
+export function bousouActive(){return state.s.faction==="shu"&&now()<state.bousouUntil;}
+export function bousouOnCooldown(){return state.s.faction==="shu"&&now()>=state.bousouUntil&&now()<state.bousouCooldownUntil;}
+// クリックにのみ乗る倍率(静寂=-40%、暴走=+150%)。既存のCPS計算(state.curMult)には影響させない。
+export function factionModeClickMul(){if(seijakuActive())return 0.6;if(bousouActive())return 2.5;return 1;}
+// クリック・CPS双方に乗る倍率。暴走終了後120秒だけ-30%(3.4のboostとは独立、state.curMult経由で両方に効く)。
+export function factionModeProdMul(){return bousouOnCooldown()?0.7:1;}
+// 暴走中はコンボ判定幅を190〜820msから150〜1000msへ拡張する。
+export function comboWindow(){return bousouActive()?[150,1000]:[190,820];}
 export function lowCount(){return activeLowids().reduce((a,id)=>a+state.s.own[id],0);}
 export function comboMul(){return 1+Math.min(state.combo,state.up.comboMax)*state.up.comboStep;}
 export function baseMult(){return (1+state.up.gouPer*state.s.gou)*(1+state.up.kudokuVal*state.s.kudoku)*(1+state.up.lowSynergy*lowCount())*state.up.globalMul*state.up.permMul;}
-export function clickPower(){return ((1+0.25*state.s.own[activeBuildings()[0].id])*state.up.clickMul*state.curMult+state.up.clickFromCps*state.s.cps)*comboMul();}
+export function clickPower(){return ((1+0.25*state.s.own[activeBuildings()[0].id])*state.up.clickMul*state.curMult+state.up.clickFromCps*state.s.cps)*comboMul()*factionModeClickMul();}
 export function rankIdx(){let i=0;for(let k=0;k<RANKS.length;k++){if(state.s.total>=RANKS[k][0])i=k;}return i;}
 export function rankOf(){return RANKS[rankIdx()][1];}
 export function rebirthReq(){return 1e6*Math.pow(4,state.s.rebirths);}

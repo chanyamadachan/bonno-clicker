@@ -1,6 +1,6 @@
 import { state } from "../core/state.js";
 import { now, fmt } from "../core/format.js";
-import { feverOn, frenzyOn, clickPower } from "../core/formulas.js";
+import { feverOn, frenzyOn, clickPower, comboWindow } from "../core/formulas.js";
 import { bong, pok, critSfx, chant, grooveBeat, scratch } from "../core/audio.js";
 import { HEART, HYPE } from "../data/content.js";
 import { $, zone, shake } from "./dom.js";
@@ -15,8 +15,8 @@ zone.addEventListener("click",e=>{
   const s=state.s,up=state.up,t=now();
   if(zone.classList.contains("hint"))zone.classList.remove("hint");
   const shu=s.faction==="shu";let comboGrew=false,comboBroke=false;
-  if(state.lastTap){const gap=t-state.lastTap;
-    if(gap>=190&&gap<=820){state.tapGaps.push(gap);if(state.tapGaps.length>5)state.tapGaps.shift();const avg=state.tapGaps.reduce((a,c)=>a+c,0)/state.tapGaps.length;if(Math.abs(gap-avg)<=155){state.combo=Math.min(up.comboMax,state.combo+1);comboGrew=true;}else{state.combo=Math.max(0,state.combo-2);comboBroke=true;}}
+  if(state.lastTap){const gap=t-state.lastTap;const[gMin,gMax]=comboWindow();
+    if(gap>=gMin&&gap<=gMax){state.tapGaps.push(gap);if(state.tapGaps.length>5)state.tapGaps.shift();const avg=state.tapGaps.reduce((a,c)=>a+c,0)/state.tapGaps.length;if(Math.abs(gap-avg)<=155){state.combo=Math.min(up.comboMax,state.combo+1);comboGrew=true;}else{state.combo=Math.max(0,state.combo-2);comboBroke=true;}}
     else{state.combo=Math.max(0,state.combo-3);state.tapGaps.length=0;comboBroke=true;}}
   state.lastTap=t;if(state.combo>0&&!state.comboActive){state.comboActive=true;state.comboStart=t;}if(state.combo>s.maxCombo)s.maxCombo=state.combo;
   if(shu){if(comboGrew&&state.combo>=2)grooveBeat(state.combo);else if(comboBroke&&state.combo===0)scratch();}

@@ -36,6 +36,8 @@ $delta = isset($body['delta']) ? (float)$body['delta'] : -1.0;
 $clientTs = isset($body['clientTs']) ? (int)$body['clientTs'] : null;
 // ルーム対戦中(3.7)の任意フィールド。未参加・未指定なら従来どおりグローバルのみに計上する。
 $roomCodeRaw = isset($body['roomCode']) ? strtoupper(trim((string)$body['roomCode'])) : '';
+// 仏教陣営「静寂」モード中(5.12)の任意フラグ。ONの間はCP変換係数(k)を+25%する。
+$seijaku = isset($body['seijaku']) && $body['seijaku'] === true;
 
 if (!preg_match('/^[A-Za-z0-9_-]{8,64}$/', $playerId)) {
   http_response_code(400); echo json_encode(['error' => 'invalid_player_id']); exit;
@@ -97,7 +99,11 @@ $upsertPlayer->execute([$playerId, $faction, $now, $now]);
 $active = bonno_active_player_counts($pdo, $CONTRIB_WINDOW_HOURS);
 $totalActive = $active['kon'] + $active['shu'];
 $boost = bonno_compute_boost($totalActive, $active[$faction] ?? 0);
-$cp = bonno_compute_cp($delta, $CP_K) * $boost;
+// 静寂モード中は「耐えるほど徳が積み上がる」を体現し、CP変換係数そのものを+25%する(5.12)。
+// 暴走モード側は別レイヤー(clickPower)で生の生産量が変わるだけで、CP式自体には手を加えない
+// (log圧縮の頭打ちが「量を追うがCP効率は伸びにくい」という煩悩陣営らしい性質を自然に生む設計)。
+$kEff = ($faction === 'kon' && $seijaku) ? $CP_K * 1.25 : $CP_K;
+$cp = bonno_compute_cp($delta, $kEff) * $boost;
 
 $insert = $pdo->prepare(
   'INSERT INTO contributions (player_id, faction, raw_delta, cp, room_id, client_ts, reported_at, ip_hash)
@@ -109,7 +115,7 @@ $insert->execute([$playerId, $faction, $delta, $cp, $clientTs, $now, hash('sha25
 // ルームは母数の少ない閉じた対戦のため、グローバル人口比のboost(3.4)は掛けず素のCPのみを積む。
 $roomCp = null;
 if ($roomId !== null) {
-  $roomCp = bonno_compute_cp($delta, $CP_K);
+  $roomCp = bonno_compute_cp($delta, $kEff);
   $insertRoom = $pdo->prepare(
     'INSERT INTO contributions (player_id, faction, raw_delta, cp, room_id, client_ts, reported_at, ip_hash)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
