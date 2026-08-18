@@ -32,7 +32,8 @@
   .chip.mult .v{color:#7fd6a6} .chip.kudoku .v{color:#e6a9ff}
   .chip.world{min-width:150px;display:flex;flex-direction:column;gap:3px;padding:5px 12px}
   .wtrack{position:relative;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--kon),#6b5230 50%,var(--shu));margin:1px 0}
-  .wmarker{position:absolute;top:50%;left:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;border:2px solid var(--gold2);box-shadow:0 0 4px rgba(0,0,0,.6);transition:left .5s ease}
+  .wmarker{position:absolute;top:50%;left:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;border:2px solid var(--gold2);box-shadow:0 0 4px rgba(0,0,0,.6);transition:left .5s ease,opacity .3s ease}
+  .wmarker.pending{opacity:.6;box-shadow:0 0 0 4px rgba(255,221,128,.3),0 0 4px rgba(0,0,0,.6)}
   .wlabel{font-size:10px;color:var(--gold2);text-align:center;letter-spacing:.04em}
   .wpop{font-size:8px;color:#b79b6a;text-align:center;letter-spacing:.02em}
   .wboost{font-size:8px;color:#7fd6a6;text-align:center;letter-spacing:.02em;min-height:10px}
