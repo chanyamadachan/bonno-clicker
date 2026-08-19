@@ -3,7 +3,7 @@ import { save } from "./save.js";
 import { seijakuActive } from "./formulas.js";
 
 const API_BASE = "/backend/public/api";
-const SEND_INTERVAL_MS = 3 * 60 * 1000; // 3分間隔(企画設計書 4.2)
+const SEND_INTERVAL_MS = 60 * 1000; // 1分間隔
 
 let lastAttempt = 0;
 let inFlight = false;
