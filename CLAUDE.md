@@ -109,6 +109,16 @@ js/
 - **ES Modules (`<script type="module">`) は `file://` で直接開くとCORSブロックされ起動しない。** 従来の「直接開くと `window.storage` 未定義でセーブだけ無効化される」から一歩進み、**ローカルサーバ経由での確認が必須**になった点に注意。フェーズ2以降、陣営送信・世界情勢取得は `backend/public/api/*.php` への通信を伴う。`js/core/faction.js`・`js/ui/world.js` の `API_BASE` は `/backend/public/api` という相対パスで実装されているため、**リポジトリルートを docroot にした単一の `php -S localhost:8811` プロセス**でフロント（`index.html`・`js/`）とバックエンドを同時配信する必要がある（`backend/config.php` の `$ALLOWED_ORIGINS` のデフォルトも8811番を許可）。フロントとバックエンドを別プロセス・別ポートに分けたり、8000番など別ポートで起動すると `POST /api/contribute.php` がOrigin不一致で403になるので注意。バックエンド機能を使わない純粋なフロント確認だけなら `python3 -m http.server 8000` でも代用できるが、その場合は陣営対戦まわりはダミー値表示にフォールバックする。
 - 新しいモジュールを追加する際、循環import下でのトップレベル即時評価に注意（上記「循環importの注意」参照）。他モジュールの値を使う副作用的な処理（`addEventListener` 登録など）は、モジュールのトップレベルに直書きせず関数化し、`main.js` の起動シーケンスから呼ぶのが安全。
 
+### ブラウザでの実際の描画確認（`run-bonno-clicker` スキル）
+
+フロントエンドの変更を加えたら、コードを読むだけでなくヘッドレスブラウザで実際に描画・操作させて確認すること。上記のサーバー起動〜モーダル解除〜クリック操作〜スクリーンショット〜console errorsチェックの一連の流れは `.claude/skills/run-bonno-clicker/`（`SKILL.md` + `driver.mjs`）としてスキル化済みなので、都度手順を再構築する必要はない。
+
+- **新しい会話から**: `.claude/skills/` 配下はClaude Codeがネイティブに自動検出するため、`/run-bonno-clicker` またはSkillツールでそのまま呼び出せる（「bonno-clickerのUIをスクリーンショットして」のような自然な依頼でも `SKILL.md` の `description` にマッチして自動ロードされる）。
+- **今まさにこのスキルを新規作成/更新した同一会話内**: スキル一覧は会話開始時点でスナップショットされるため、Skillツールでは直後には呼べないことがある。その場合は同じ中身を `Bash` で直接叩けばよい: `node .claude/skills/run-bonno-clicker/driver.mjs smoke`。
+- driverのサブコマンドは `serve`（サーバー起動のみ）/ `smoke`（起動＋陣営モーダル解除＋`#clickzone` 8回クリック＋スクリーンショット2枚＋console errorsチェック、エラーがあれば非ゼロ終了）/ `screenshot <name>`（任意タイミングのスクリーンショット）。Playwrightは `package.json` の devDependency として固定済み（`chromium-cli` は本プロジェクト環境では未導入）。
+- スクリーンショットの保存先は `.claude/skills/run-bonno-clicker/screenshots/`（`.gitignore` 済み、生成物はコミットしない）。
+- ハマりどころ（クリック対象は `#zone` ではなく `#clickzone`、初回ロード時に陣営選択モーダルが必ず出る、等）は `SKILL.md` の Gotchas/Troubleshooting セクションに集約してあるので、新しい罠を踏んだら都度そこに追記していくこと。
+
 ## 今後の方向性（メモ）
 
 陣営対戦要素（煩悩陣営 vs 仏教陣営）を見据え、さくらのレンタルサーバ/VPS + PHP/MySQL で「各プレイヤーの貢献値を定期的にサーバーへ送信・集計し、陣営スコアとして返す」薄いAPIを追加する方針で合意済み（2026-08-14時点）。今回のリファクタリングはその前段としてフロントエンドの保守性を上げる作業であり、バックエンド（`backend/` ディレクトリ等）はまだ着手していない。
