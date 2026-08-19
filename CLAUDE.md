@@ -24,7 +24,8 @@ js/
     formulas.js              costOf/maxAff/computeUp/clickPower/baseMult/rebirthReq 等の判定関数群
     audio.js                 Web Audio（ac/pok/bong/chime/fanfare/critSfx/chant）
     sprites.js                makeSprite/makeSil/buildSprites
-    save.js                   window.storage ラッパー（save/load/wipe/offlineWelcome）
+    save.js                   セーブ/ロード/オフライン進行（save/load/wipe/offlineWelcome、永続化は storage.js 経由）
+    storage.js                 localStorage を非同期API化した永続化アダプター（save.js・ui/world.js が共用）
   ui/                    DOM描画・イベント処理
     dom.js                  $ヘルパー, 要素キャッシュ, 建物/学び/特典/実績カードの初期構築, タブ/qty/soundイベント, ask()/toastEl()/shake()
     shop.js                  buyN/buyUpg, renderShop, updateAfford
@@ -90,7 +91,7 @@ js/
 
 ## セーブ / オフライン進行
 
-- セーブは `localStorage` ではなく `window.storage`（`store`）という外部提供オブジェクトの `get`/`set` に依存している（`js/core/save.js`）。`window.storage` が存在しない環境（例: ローカルで直接ファイルを開いた場合）では `store` が `null` になり、**セーブ/ロードもオフライン進行報酬も一切動作しない**。動作確認する際はホスト環境が `window.storage.get(key, isJSON)` / `window.storage.set(key, value, isJSON)` 相当のAPIを注入しているか確認すること。
+- セーブは `js/core/storage.js` の `storage`（`localStorage` を `get`/`set`/`delete` の非同期APIとして薄くラップしたもの）に永続化される（`js/core/save.js`、`js/ui/world.js` の情勢推移履歴も同様）。同一ブラウザで再訪した際にプレイデータ・陣営/ルーム参加状態（`s.faction`/`s.roomCode`/`s.playerId`）を引き継ぐのはこの層が前提。以前は `window.storage` という外部提供オブジェクト（Claude Artifact等のホスト環境が注入する想定）に依存していたが、本プロジェクトは自前サーバ/VPSでの独自ドメイン配信のみを想定しているため2026-08-19に `localStorage` ベースへ一本化した。プライベートブラウジング等で `localStorage` へのアクセスが例外を投げる環境でも起動を壊さないよう `storage.js` 内でtry/catchしている。
 - セーブキーは `KEY = "bonno-clicker-save-v9"`。セーブデータ構造を変える破壊的変更をする場合はバージョン番号を上げて既存セーブとの非互換を明示する運用と推測される。
 - オフライン進行は `offlineWelcome()` が担当。最終アクセス時刻との差分（最大4時間キャップ）から放置中の生産量を計算し、`up.offlineEff`（学びで強化可能）を掛けて帰還時に一括付与する。
 
@@ -106,7 +107,7 @@ js/
 
 - モジュール分割後もDOM ID 命名規則（`$("id")` ヘルパー経由でのアクセス、`js/ui/dom.js` の `$` 関数）に合わせること。新しいDOM要素を追加した場合、`index.html` に `id` を振り、参照する側は該当モジュールで `$("id")` する。
 - 新しい発生源やアップグレードを追加する場合、`BUILDINGS`/`UP`/`PERKS`/`ACH`（いずれも `js/data/` 配下）はそれぞれ配列の並び順がそのままUI表示順になる。コストやしきい値は既存の指数カーブ（発生源は概ね20〜25倍刻み）に揃えると難易度バランスが崩れにくい。
-- **ES Modules (`<script type="module">`) は `file://` で直接開くとCORSブロックされ起動しない。** 従来の「直接開くと `window.storage` 未定義でセーブだけ無効化される」から一歩進み、**ローカルサーバ経由での確認が必須**になった点に注意。フェーズ2以降、陣営送信・世界情勢取得は `backend/public/api/*.php` への通信を伴う。`js/core/faction.js`・`js/ui/world.js` の `API_BASE` は `/backend/public/api` という相対パスで実装されているため、**リポジトリルートを docroot にした単一の `php -S localhost:8811` プロセス**でフロント（`index.html`・`js/`）とバックエンドを同時配信する必要がある（`backend/config.php` の `$ALLOWED_ORIGINS` のデフォルトも8811番を許可）。フロントとバックエンドを別プロセス・別ポートに分けたり、8000番など別ポートで起動すると `POST /api/contribute.php` がOrigin不一致で403になるので注意。バックエンド機能を使わない純粋なフロント確認だけなら `python3 -m http.server 8000` でも代用できるが、その場合は陣営対戦まわりはダミー値表示にフォールバックする。
+- **ES Modules (`<script type="module">`) は `file://` で直接開くとCORSブロックされ起動しない。** **ローカルサーバ経由での確認が必須**な点に注意。フェーズ2以降、陣営送信・世界情勢取得は `backend/public/api/*.php` への通信を伴う。`js/core/faction.js`・`js/ui/world.js` の `API_BASE` は `/backend/public/api` という相対パスで実装されているため、**リポジトリルートを docroot にした単一の `php -S localhost:8811` プロセス**でフロント（`index.html`・`js/`）とバックエンドを同時配信する必要がある（`backend/config.php` の `$ALLOWED_ORIGINS` のデフォルトも8811番を許可）。フロントとバックエンドを別プロセス・別ポートに分けたり、8000番など別ポートで起動すると `POST /api/contribute.php` がOrigin不一致で403になるので注意。バックエンド機能を使わない純粋なフロント確認だけなら `python3 -m http.server 8000` でも代用できるが、その場合は陣営対戦まわりはダミー値表示にフォールバックする。
 - 新しいモジュールを追加する際、循環import下でのトップレベル即時評価に注意（上記「循環importの注意」参照）。他モジュールの値を使う副作用的な処理（`addEventListener` 登録など）は、モジュールのトップレベルに直書きせず関数化し、`main.js` の起動シーケンスから呼ぶのが安全。
 
 ### ブラウザでの実際の描画確認（`run-bonno-clicker` スキル）

@@ -125,8 +125,8 @@ async function cmdServe() {
 async function cmdBoon(faction = 'kon') {
   await ensureServer();
   const { browser, page, errors } = await openApp({ faction });
-  // window.storageが無いheadless環境ではセーブが効かず功徳は転生でしか貯まらないため、
-  // 確認用に直接state.s.kudokuを底上げする(同一originの動的importはHTML側のモジュールインスタンスと共有される)。
+  // 功徳は本来転生でしか貯まらないため、確認用に直接state.s.kudokuを底上げする
+  // (同一originの動的importはHTML側のモジュールインスタンスと共有される)。
   await page.evaluate(async () => {
     const mod = await import('/js/core/state.js');
     mod.state.s.kudoku = 100;
@@ -175,8 +175,8 @@ async function cmdFarewell() {
 }
 
 // オフライン復帰の燃え尽き防止コピー(企画設計書 5.16 / 9.3 Step 3-6)の確認用。
-// window.storageが無いheadless環境ではload()経由のlastSeenが常に0なので、
-// offlineWelcome()を動的importで直接呼び、1時間前に離脱していた体で発火させる。
+// このドライバは毎回localStorageをクリアした新規プロファイルで起動するためload()経由の
+// lastSeenが常に0になるので、offlineWelcome()を動的importで直接呼び、1時間前に離脱していた体で発火させる。
 async function cmdWelcome(faction = 'kon') {
   await ensureServer();
   const { browser, page, errors } = await openApp({ faction });

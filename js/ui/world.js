@@ -1,6 +1,7 @@
 import { $ } from "./dom.js";
 import { state } from "../core/state.js";
 import { seijakuActive } from "../core/formulas.js";
+import { storage } from "../core/storage.js";
 
 const API_BASE = "/backend/public/api";
 const FETCH_INTERVAL_MS = 60 * 1000; // 世界情勢の取得は60秒おきで十分(直近窓は48時間単位のため)
@@ -14,7 +15,7 @@ const CLIENT_K_GUESS = 12.0;
 const HISTORY_KEY = "bonno-clicker-world-history-v1";
 const HISTORY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const HISTORY_MAX_POINTS = 500;
-const historyStore = (typeof window !== "undefined" && window.storage) ? window.storage : null;
+const historyStore = storage;
 let history = [];
 
 const LABELS = [
