@@ -1,2 +1,4 @@
 backend/config.local.php
 .DS_Store
+node_modules/
+.claude/skills/run-bonno-clicker/screenshots/*.png
