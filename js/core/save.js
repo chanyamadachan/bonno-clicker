@@ -14,7 +14,11 @@ export async function wipe(){if(!store)return;try{await store.delete(KEY,false);
 export function offlineWelcome(lastSeen){const s=state.s;if(!lastSeen)return;const el=Math.floor((Date.now()-lastSeen)/1000);if(el<60)return;let raw=0;for(const b of activeBuildings())raw+=s.own[b.id]*b.cps*state.up.bld[b.id];const idleCps=raw*baseMult();if(idleCps<=0)return;const capped=Math.min(el,14400);const gain=Math.floor(idleCps*capped*state.up.offlineEff);if(gain<1)return;s.bonno+=gain;s.total+=gain;
   // オフライン復帰分は陣営対戦の直近窓集計から除外する(ディレクターレビュー0.1-4)。lastReportedTotalを同時に進め、次回送信の差分に含めない。
   s.lastReportedTotal=(s.lastReportedTotal||0)+gain;
-  const hrs=(capped/3600);const dur=hrs>=1?hrs.toFixed(1)+"時間分":Math.round(capped/60)+"分";setTimeout(()=>toastEl("welcome","おかえりなさい","留守のあいだに","+"+fmt(gain)+"（"+dur+"）"),700);}
+  const hrs=(capped/3600);const dur=hrs>=1?hrs.toFixed(1)+"時間分":Math.round(capped/60)+"分";
+  // 燃え尽き防止・罪悪感のデザイン(5.16 / 9.3 Step 3-6)。オフライン復帰分は陣営貢献に反映されない
+  // 実装(15-16行目)を正としてコピーを実態に合わせ、休むことへの後ろめたさを能動的に薄める(0.3-A)。
+  const factionNote=s.faction?"<br>ログイン中の頑張りがそのまま陣営貢献になります（オフライン分は対象外）":"";
+  setTimeout(()=>toastEl("welcome","おかえりなさい","留守のあいだに","+"+fmt(gain)+"（"+dur+"）"+factionNote),700);}
 
 export async function load(){
   const s=state.s;

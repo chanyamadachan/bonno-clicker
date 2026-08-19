@@ -170,6 +170,31 @@ async function cmdFarewell() {
   if (errors.length > 0) process.exitCode = 1;
 }
 
+// オフライン復帰の燃え尽き防止コピー(企画設計書 5.16 / 9.3 Step 3-6)の確認用。
+// window.storageが無いheadless環境ではload()経由のlastSeenが常に0なので、
+// offlineWelcome()を動的importで直接呼び、1時間前に離脱していた体で発火させる。
+async function cmdWelcome(faction = 'kon') {
+  await ensureServer();
+  const { browser, page, errors } = await openApp({ faction });
+  await page.evaluate(async (fac) => {
+    const { state, activeBuildings } = await import('/js/core/state.js');
+    const { computeUp } = await import('/js/core/formulas.js');
+    const { offlineWelcome } = await import('/js/core/save.js');
+    state.s.faction = fac;
+    computeUp();
+    const b = activeBuildings()[0];
+    state.s.own[b.id] = 5;
+    offlineWelcome(Date.now() - 3600 * 1000);
+  }, faction);
+  await page.waitForTimeout(1200); // offlineWelcome内のsetTimeout(700ms)を待つ
+  await page.screenshot({ path: path.join(SHOT_DIR, `welcome-01-${faction}.png`) });
+  const toastCount = await page.locator('.ofuda.welcome').count();
+  console.log('[driver] welcome toast count:', toastCount);
+  console.log('[driver] console/page errors:', JSON.stringify(errors, null, 2));
+  await browser.close();
+  if (errors.length > 0) process.exitCode = 1;
+}
+
 const [, , cmd, arg] = process.argv;
 switch (cmd) {
   case 'serve': await cmdServe(); break;
@@ -177,7 +202,8 @@ switch (cmd) {
   case 'screenshot': await cmdScreenshot(arg); break;
   case 'boon': await cmdBoon(arg); break;
   case 'farewell': await cmdFarewell(); break;
+  case 'welcome': await cmdWelcome(arg); break;
   default:
-    console.error('usage: node driver.mjs <serve|smoke|screenshot [name]|boon [kon|shu]|farewell>');
+    console.error('usage: node driver.mjs <serve|smoke|screenshot [name]|boon [kon|shu]|farewell|welcome [kon|shu]>');
     process.exit(1);
 }
