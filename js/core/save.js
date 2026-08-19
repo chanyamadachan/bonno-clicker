@@ -3,12 +3,12 @@ import { baseMult } from "./formulas.js";
 import { fmt } from "./format.js";
 import { BUILDINGS } from "../data/buildings.js";
 import { BUILDINGS_SHU } from "../data/buildings-shu.js";
-import { toastEl } from "../ui/dom.js";
+import { toastEl, showSaveIndicator } from "../ui/dom.js";
 import { storage } from "./storage.js";
 
 const store=storage;
 
-export async function save(){if(!store)return;const s=state.s;try{await store.set(KEY,JSON.stringify({bonno:s.bonno,total:s.total,clicks:s.clicks,own:s.own,got:s.got,upg:s.upg,perks:s.perks,spent:s.spent,gou:s.gou,kudoku:s.kudoku,rebirths:s.rebirths,feversDone:s.feversDone,bellStrikes:s.bellStrikes,crits:s.crits,luckies:s.luckies,frenzies:s.frenzies,houyous:s.houyous,maxCombo:s.maxCombo,maxComboMs:s.maxComboMs,muted:s.muted,faction:s.faction,playerId:s.playerId,lastReportedTotal:s.lastReportedTotal,roomCode:s.roomCode,bousouUses:s.bousouUses,bousouDay:s.bousouDay,seidoGiven:s.seidoGiven,boonCastDate:s.boonCastDate,lastSeen:Date.now()}),false);}catch(e){}}
+export async function save(){if(!store)return;const s=state.s;try{await store.set(KEY,JSON.stringify({bonno:s.bonno,total:s.total,clicks:s.clicks,own:s.own,got:s.got,upg:s.upg,perks:s.perks,spent:s.spent,gou:s.gou,kudoku:s.kudoku,rebirths:s.rebirths,feversDone:s.feversDone,bellStrikes:s.bellStrikes,crits:s.crits,luckies:s.luckies,frenzies:s.frenzies,houyous:s.houyous,maxCombo:s.maxCombo,maxComboMs:s.maxComboMs,muted:s.muted,faction:s.faction,playerId:s.playerId,lastReportedTotal:s.lastReportedTotal,roomCode:s.roomCode,bousouUses:s.bousouUses,bousouDay:s.bousouDay,seidoGiven:s.seidoGiven,boonCastDate:s.boonCastDate,lastSeen:Date.now()}),false);showSaveIndicator();}catch(e){}}
 
 export async function wipe(){if(!store)return;try{await store.delete(KEY,false);}catch(e){}}
 

@@ -1,6 +1,7 @@
 import { state } from "../core/state.js";
 import { ac, applyMute } from "../core/audio.js";
 import { save } from "../core/save.js";
+import { now, fmtClock } from "../core/format.js";
 import { BUILDINGS } from "../data/buildings.js";
 import { BUILDINGS_SHU } from "../data/buildings-shu.js";
 import { UP } from "../data/upgrades.js";
@@ -26,6 +27,18 @@ $("mNo").addEventListener("click",()=>{$("modal").classList.remove("on");modalYe
 export function toastEl(cls,ot,on,ok){const el=document.createElement("div");el.className="ofuda "+cls;el.innerHTML=`<div class="ot">${ot}</div><div class="on">${on}</div><div class="ok">${ok}</div>`;$("toasts").appendChild(el);setTimeout(()=>el.remove(),cls.indexOf("welcome")>=0?6000:3800);}
 
 export function shake(){const c=$("colMok");c.classList.remove("shake");void c.offsetWidth;c.classList.add("shake");}
+
+let saveIndicatorTimer=null;
+export function showSaveIndicator(){
+  const el=$("saveIndicator");
+  el.textContent="✓ セーブしました（"+fmtClock(now())+"）";
+  el.classList.add("flash");
+  clearTimeout(saveIndicatorTimer);
+  saveIndicatorTimer=setTimeout(()=>{
+    el.classList.remove("flash");
+    el.textContent="最終セーブ "+fmtClock(now());
+  },1600);
+}
 
 const panelB=$("panelB"),upList=$("upList"),perkList=$("perkList"),achGrid=$("achGrid");
 export const rows={};
