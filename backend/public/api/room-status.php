@@ -41,6 +41,7 @@ $sum = $cp['kon'] + $cp['shu'];
 $balance = $sum > 0 ? max(-1.0, min(1.0, ($cp['shu'] - $cp['kon']) / ($sum + $eps))) : 0.0;
 
 $participantCount = bonno_room_participant_count($pdo, (int)$room['id']);
+$factionCounts = bonno_room_faction_counts($pdo, (int)$room['id']);
 
 $winnerFaction = null;
 if ($status === 'finished') {
@@ -56,6 +57,8 @@ echo json_encode([
   'status' => $status,
   'maxPlayers' => (int)$room['max_players'],
   'participants' => $participantCount,
+  'konCount' => $factionCounts['kon'],
+  'shuCount' => $factionCounts['shu'],
   'konCP' => round($cp['kon'], 3),
   'shuCP' => round($cp['shu'], 3),
   'balance' => round($balance, 4),

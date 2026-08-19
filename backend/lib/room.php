@@ -36,3 +36,16 @@ function bonno_room_participant_count(PDO $pdo, int $roomId): int {
   $stmt->execute([$roomId]);
   return (int)$stmt->fetch()['n'];
 }
+
+// 4/8人ルームで陣営ごとの参加人数を均等に保つための内訳(3.7 改善案: 参加時の陣営選択を
+// 人数バランスに応じて制限する)。
+function bonno_room_faction_counts(PDO $pdo, int $roomId): array {
+  $stmt = $pdo->prepare('SELECT faction, COUNT(*) AS n FROM room_players WHERE room_id = ? GROUP BY faction');
+  $stmt->execute([$roomId]);
+  $counts = ['kon' => 0, 'shu' => 0];
+  foreach ($stmt->fetchAll() as $r) {
+    $f = (string)$r['faction'];
+    if (isset($counts[$f])) $counts[$f] = (int)$r['n'];
+  }
+  return $counts;
+}

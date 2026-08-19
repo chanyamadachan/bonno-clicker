@@ -233,18 +233,18 @@
     <div id="roomHome">
       <div class="rtitle">ルーム対戦</div>
       <div class="rsub">友達を誘って、1対1〜数人だけの閉じた陣営対戦を始める。</div>
-      <div class="rfaction" id="roomFactionPick">
-        <div class="rflabel">あなたの陣営</div>
-        <div class="rfchoices">
-          <button class="rfchoice kon" id="roomChooseKon">仏教陣営</button>
-          <button class="rfchoice shu" id="roomChooseShu">煩悩陣営</button>
-        </div>
-      </div>
-      <div class="rtabs">
+      <div class="rtabs" id="roomTabs">
         <button class="rtab on" id="rtabCreate">ルームを作る</button>
         <button class="rtab" id="rtabJoin">合言葉で参加</button>
       </div>
       <div id="roomCreatePane">
+        <div class="rfaction" id="roomFactionPick">
+          <div class="rflabel">あなたの陣営</div>
+          <div class="rfchoices">
+            <button class="rfchoice kon" id="roomChooseKon">仏教陣営</button>
+            <button class="rfchoice shu" id="roomChooseShu">煩悩陣営</button>
+          </div>
+        </div>
         <label class="rfield">人数上限
           <select id="roomMaxPlayers"><option value="2">2人（1対1）</option><option value="4">4人</option><option value="8">8人</option></select>
         </label>
@@ -257,7 +257,14 @@
         <label class="rfield">合言葉（6文字）
           <input type="text" id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="ABCDEF">
         </label>
-        <button class="rmainbtn" id="roomJoinBtn">参加する</button>
+        <button class="rmainbtn" id="roomJoinCheckBtn">確認する</button>
+        <div class="rfaction" id="roomJoinFactionPick" style="display:none">
+          <div class="rflabel">あなたの陣営（人数が均等になるよう選んでください）</div>
+          <div class="rfchoices">
+            <button class="rfchoice kon" id="roomJoinKon">仏教陣営 <span id="roomJoinKonCount"></span></button>
+            <button class="rfchoice shu" id="roomJoinShu">煩悩陣営 <span id="roomJoinShuCount"></span></button>
+          </div>
+        </div>
       </div>
       <div class="rerr" id="roomError"></div>
     </div>

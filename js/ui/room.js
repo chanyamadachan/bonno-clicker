@@ -25,6 +25,7 @@ function roomErrorText(code){
     case "room_not_found": return "その合言葉のルームは見つかりません。";
     case "room_finished": return "そのルームはすでに終了しています。";
     case "room_full": return "そのルームは満員です。";
+    case "faction_full": return "その陣営はすでに定員に達しています。";
     case "invalid_code": return "合言葉は6文字の英数字です。";
     default: return "エラーが発生しました。しばらくしてから試してください。";
   }
@@ -44,6 +45,7 @@ function switchTab(tab){
   $("rtabJoin").classList.toggle("on", !creating);
   $("roomCreatePane").style.display = creating ? "" : "none";
   $("roomJoinPane").style.display = creating ? "none" : "";
+  if(creating) resetJoinFlow();
 }
 
 function updateFactionPick(){
@@ -64,9 +66,21 @@ function pickFaction(id){
   updateFactionPick();
 }
 
+function resetJoinFlow(){
+  $("roomCodeInput").disabled = false;
+  $("roomJoinCheckBtn").style.display = "";
+  $("roomJoinFactionPick").style.display = "none";
+}
+
 export function openRoomModal(tab){
   $("roomError").textContent = "";
+  // 呼び出し元がすでにcreate/joinを決めている場合(トップの陣営選択モーダルの2ボタン経由)は、
+  // ここでもう一度切り替えタブを出すと二度手間になるので隠す。トップバーの「対戦する」チップ
+  // から引数なしで開いた場合のみ、従来どおり両方選べるようにする。
+  $("roomTabs").style.display = tab ? "none" : "";
   updateFactionPick();
+  resetJoinFlow();
+  $("roomCodeInput").value = "";
   if(state.s.roomCode){ showActivePane(); refreshRoomStatus(); }
   else{ showHomePane(); switchTab(tab || "create"); }
   $("roomModal").classList.add("on");
@@ -101,19 +115,57 @@ async function createRoom(){
   }
 }
 
-async function joinRoom(){
-  if(!state.s.faction){ $("roomError").textContent = "先に陣営を選んでください。"; return; }
+// 合言葉を確認し、2人ルームなら陣営選択なしでそのまま参加、4/8人ルームなら人数が均等になる
+// よう陣営選択ボタンを出す(改善案: 参加者に陣営を自由選択させると偏りうるため)。
+async function checkJoinCode(){
   const code = $("roomCodeInput").value.trim().toUpperCase();
   if(!/^[A-Z0-9]{6}$/.test(code)){ $("roomError").textContent = "合言葉は6文字の英数字です。"; return; }
+  $("roomError").textContent = "";
+  try{
+    const res = await fetch(API_BASE + "/room-status.php?code=" + encodeURIComponent(code));
+    const data = await res.json();
+    if(!res.ok){ $("roomError").textContent = roomErrorText(data.error); return; }
+    if(data.status==="finished"){ $("roomError").textContent = roomErrorText("room_finished"); return; }
+    if(data.participants >= data.maxPlayers){ $("roomError").textContent = roomErrorText("room_full"); return; }
+    if(data.maxPlayers===2){
+      joinRoom(code, null);
+    }else{
+      showJoinFactionPick(code, data);
+    }
+  }catch(e){
+    $("roomError").textContent = "通信に失敗しました。しばらくしてから試してください。";
+  }
+}
+
+function showJoinFactionPick(code, data){
+  const cap = Math.floor(data.maxPlayers/2);
+  $("roomCodeInput").disabled = true;
+  $("roomJoinCheckBtn").style.display = "none";
+  $("roomJoinFactionPick").style.display = "";
+  const konBtn = $("roomJoinKon"), shuBtn = $("roomJoinShu");
+  konBtn.disabled = data.konCount >= cap;
+  shuBtn.disabled = data.shuCount >= cap;
+  $("roomJoinKonCount").textContent = `(${data.konCount}/${cap})`;
+  $("roomJoinShuCount").textContent = `(${data.shuCount}/${cap})`;
+  konBtn.onclick = ()=>joinRoom(code, "kon");
+  shuBtn.onclick = ()=>joinRoom(code, "shu");
+}
+
+// faction=null は2人ルームの自動割当(サーバー側でホストの逆陣営を決定)を意味する。
+async function joinRoom(code, faction){
   $("roomError").textContent = "";
   try{
     const res = await fetch(API_BASE + "/room-join.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerId: state.s.playerId, code, faction: state.s.faction }),
+      body: JSON.stringify({ playerId: state.s.playerId, code, faction }),
     });
     const data = await res.json();
-    if(!res.ok){ $("roomError").textContent = roomErrorText(data.error); return; }
+    if(!res.ok){ $("roomError").textContent = roomErrorText(data.error); resetJoinFlow(); return; }
+    state.s.faction = data.faction;
+    state.dirty = true;
+    applyMokTier(state.curTier);
+    applyFactionLabels();
     state.s.roomCode = code;
     save();
     showActivePane();
@@ -121,6 +173,7 @@ async function joinRoom(){
     showGame();
   }catch(e){
     $("roomError").textContent = "通信に失敗しました。しばらくしてから試してください。";
+    resetJoinFlow();
   }
 }
 
@@ -203,7 +256,7 @@ export function initRoomUI(){
   $("rtabCreate").addEventListener("click", ()=>switchTab("create"));
   $("rtabJoin").addEventListener("click", ()=>switchTab("join"));
   $("roomCreateBtn").addEventListener("click", createRoom);
-  $("roomJoinBtn").addEventListener("click", joinRoom);
+  $("roomJoinCheckBtn").addEventListener("click", checkJoinCode);
   $("roomLeaveBtn").addEventListener("click", leaveRoom);
   $("roomAgainBtn").addEventListener("click", playAgain);
   if(state.s.roomCode) startPolling();
