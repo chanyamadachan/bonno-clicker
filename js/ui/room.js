@@ -45,8 +45,10 @@ function switchTab(tab){
 }
 
 function updateFactionPick(){
-  const has = !!state.s.faction;
-  $("roomFactionPick").style.display = has ? "none" : "";
+  // 初回導線中（プレイ画面がまだ隠れている間）だけ表示する。すでに通常プレイ中(トップバーの
+  // ルームチップから開いた場合)は陣営が確定済みなので選択UI自体を出さない。
+  const introActive = $("viewGame").classList.contains("pre-start");
+  $("roomFactionPick").style.display = introActive ? "" : "none";
   $("roomChooseKon").classList.toggle("on", state.s.faction==="kon");
   $("roomChooseShu").classList.toggle("on", state.s.faction==="shu");
 }
@@ -58,19 +60,18 @@ function pickFaction(id){
   updateFactionPick();
 }
 
-export function openRoomModal(){
+export function openRoomModal(tab){
   $("roomError").textContent = "";
   updateFactionPick();
   if(state.s.roomCode){ showActivePane(); refreshRoomStatus(); }
-  else{ showHomePane(); switchTab("create"); }
+  else{ showHomePane(); switchTab(tab || "create"); }
   $("roomModal").classList.add("on");
 }
 function closeRoomModal(){
   $("roomModal").classList.remove("on");
-  // 初回導線中（陣営未選択でプレイ画面がまだ隠れている間）にルームを閉じた場合は、
-  // 陣営を選ばずに終われないよう陣営選択モーダルへ戻す。陣営決定済みならそのままゲームを見せる。
-  if(state.s.faction) showGame();
-  else if($("viewGame").classList.contains("pre-start")) $("factionModal").classList.add("on");
+  // 初回導線中（プレイ画面がまだ隠れている間）にルームを閉じた場合は、陣営選択だけ済ませて
+  // ルーム作成/参加を完了させていない状態でゲームへ進んでしまわないよう、トップページへ戻す。
+  if($("viewGame").classList.contains("pre-start")) $("factionModal").classList.add("on");
 }
 
 async function createRoom(){
@@ -191,7 +192,7 @@ export function updateRoomChip(){
 
 // トップレベルで即時登録すると循環import経路で壊れうるため、main.jsの起動シーケンスから呼ぶ(CLAUDE.md「循環importの注意」)。
 export function initRoomUI(){
-  $("roomChip").addEventListener("click", openRoomModal);
+  $("roomChip").addEventListener("click", ()=>openRoomModal());
   $("roomClose").addEventListener("click", closeRoomModal);
   $("roomChooseKon").addEventListener("click", ()=>pickFaction("kon"));
   $("roomChooseShu").addEventListener("click", ()=>pickFaction("shu"));

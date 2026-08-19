@@ -21,8 +21,12 @@ export function initFactionUI(){
   $("chooseKon").addEventListener("click", ()=>chooseFaction("kon"));
   $("chooseShu").addEventListener("click", ()=>chooseFaction("shu"));
   $("fRandom").addEventListener("click", ()=>chooseFaction(Math.random()<0.5 ? "kon" : "shu"));
-  $("fRoomBtn").addEventListener("click", ()=>{
+  $("fRoomCreateBtn").addEventListener("click", ()=>{
     closeFactionModal();
-    openRoomModal();
+    openRoomModal("create");
+  });
+  $("fRoomJoinBtn").addEventListener("click", ()=>{
+    closeFactionModal();
+    openRoomModal("join");
   });
 }
