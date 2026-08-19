@@ -54,17 +54,17 @@
           <div id="scenery"><div class="midempty">まだ何もない。<br>右の「徳を積む」で発生源を買うと、<br>ここに姿が増えていく。</div></div>
         </div>
         <div id="inenView" style="display:none"><div class="inpad">
-          <div class="sttitle">因縁（統計）</div>
+          <div class="sttitle" id="sttitleStat">因縁（統計）</div>
           <div class="stgrid">
-            <div class="stcard"><span class="sk">木魚を叩いた数</span><span class="sv" id="stClicks">0</span></div>
-            <div class="stcard"><span class="sk">生産した煩悩（累計）</span><span class="sv" id="stTotal">0</span></div>
-            <div class="stcard"><span class="sk">フィーバー発動回数</span><span class="sv" id="stFever">0</span></div>
-            <div class="stcard"><span class="sk">大法要の回数</span><span class="sv" id="stHouyou">0</span></div>
-            <div class="stcard"><span class="sk">会心を出した回数</span><span class="sv" id="stCrit">0</span></div>
-            <div class="stcard"><span class="sk">転生した回数</span><span class="sv" id="stReb">0</span></div>
-            <div class="stcard"><span class="sk">念仏コンボ最長持続</span><span class="sv" id="stCombo">0.0 秒</span></div>
+            <div class="stcard"><span class="sk" id="skClicks">木魚を叩いた数</span><span class="sv" id="stClicks">0</span></div>
+            <div class="stcard"><span class="sk" id="skTotal">生産した煩悩（累計）</span><span class="sv" id="stTotal">0</span></div>
+            <div class="stcard"><span class="sk" id="skFever">フィーバー発動回数</span><span class="sv" id="stFever">0</span></div>
+            <div class="stcard"><span class="sk" id="skHouyou">大法要の回数</span><span class="sv" id="stHouyou">0</span></div>
+            <div class="stcard"><span class="sk" id="skCrit">会心を出した回数</span><span class="sv" id="stCrit">0</span></div>
+            <div class="stcard"><span class="sk" id="skReb">転生した回数</span><span class="sv" id="stReb">0</span></div>
+            <div class="stcard"><span class="sk" id="skCombo">念仏コンボ最長持続</span><span class="sv" id="stCombo">0.0 秒</span></div>
           </div>
-          <div class="sttitle">獲得した実績 <span style="font-size:11px;color:#9c8358" id="achCount">0/0</span></div>
+          <div class="sttitle"><span id="sttitleAch">獲得した実績</span> <span style="font-size:11px;color:#9c8358" id="achCount">0/0</span></div>
           <div class="achgrid" id="achGrid"></div>
         </div></div>
       </div>
@@ -124,6 +124,62 @@
             <ellipse cx="125" cy="198" rx="70" ry="12" fill="#000" opacity=".3"/>
             <g id="shumoku"><rect x="6" y="126" width="72" height="12" rx="6" fill="#8a5a2f" stroke="#1c140d" stroke-width="3"/><circle cx="80" cy="132" r="13" fill="#c98a4a" stroke="#1c140d" stroke-width="3"/></g>
             <g id="bellBody"><line x1="125" y1="16" x2="125" y2="36" stroke="#1c140d" stroke-width="4"/><path d="M112 22 q13 -14 26 0 q6 8 -13 12 q-19 -4 -13 -12z" fill="url(#bronze)" stroke="#1c140d" stroke-width="3"/><path d="M74 62 q0 -26 51 -26 q51 0 51 26 v66 q0 20 -20 20 h-62 q-20 0 -20 -20z" fill="url(#bronze)" stroke="#1c140d" stroke-width="4"/><path d="M70 148 q55 22 110 0 q0 16 -14 16 h-82 q-14 0 -14 -16z" fill="#a9791f" stroke="#1c140d" stroke-width="4"/><path d="M84 76 h82 M84 98 h82 M84 120 h82" stroke="#6a4611" stroke-width="2.5" opacity=".6"/><g fill="#8a5f18"><circle cx="96" cy="68" r="3"/><circle cx="125" cy="66" r="3"/><circle cx="154" cy="68" r="3"/></g><circle cx="125" cy="152" r="6" fill="#6a4611"/></g>
+          </svg>
+          <svg id="brainSvg" width="300" height="270" viewBox="0 0 250 215" style="display:none">
+            <defs>
+              <radialGradient id="brainGrad" cx="42%" cy="30%" r="78%"><stop id="bg0" offset="0%" stop-color="#ffd0e0"/><stop id="bg1" offset="46%" stop-color="#ff8fb8"/><stop id="bg2" offset="100%" stop-color="#a03a68"/></radialGradient>
+              <linearGradient id="brainhi" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".35"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+              <filter id="bsoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
+            </defs>
+            <ellipse cx="125" cy="198" rx="96" ry="14" fill="#000" opacity=".32"/>
+            <g id="bOrnHalo" style="display:none"></g>
+            <g id="bOrnSpark" style="display:none" fill="#ffe600">
+              <path d="M28 132 l22 -38 l-9 16 l18 -7 l-24 40 l9 -18z" opacity=".95"/>
+              <path d="M222 132 l-22 -38 l9 16 l-18 -7 l24 40 l-9 -18z" opacity=".95"/>
+            </g>
+            <path d="M40 176 q85 -24 170 0 q-6 20 -20 22 h-130 q-14 -2 -20 -22z" fill="#3a1050" stroke="#0a0210" stroke-width="3"/>
+            <path d="M52 176 q73 -16 146 0" fill="none" stroke="#8a3ab0" stroke-width="4" opacity=".6"/>
+            <g id="brainBody">
+              <path d="M125 38 q-38 -6 -60 26 q-20 24 -14 52 q4 24 30 34 q22 8 44 2 q22 6 44 -2 q26 -10 30 -34 q6 -28 -14 -52 q-22 -32 -60 -26z" fill="url(#brainGrad)" stroke="#2a0a1c" stroke-width="4"/>
+              <path d="M70 66 q40 -22 110 0 q-10 -26 -55 -28 q-45 2 -55 28z" fill="url(#brainhi)"/>
+              <path d="M125 44 q-8 30 0 60 q8 26 0 50" fill="none" stroke="#7a1e46" stroke-width="4" opacity=".65" stroke-linecap="round"/>
+              <path d="M62 78 q16 -12 26 2 q-4 14 -18 14 q-14 0 -8 -16" fill="none" stroke="#8a2a54" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+              <path d="M56 108 q18 -8 28 6 q-6 12 -20 10 q-14 -2 -8 -16" fill="none" stroke="#8a2a54" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+              <path d="M78 138 q20 -6 26 8" fill="none" stroke="#8a2a54" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+              <path d="M188 78 q-16 -12 -26 2 q4 14 18 14 q14 0 8 -16" fill="none" stroke="#8a2a54" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+              <path d="M194 108 q-18 -8 -28 6 q6 12 20 10 q14 -2 8 -16" fill="none" stroke="#8a2a54" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+              <path d="M172 138 q-20 -6 -26 8" fill="none" stroke="#8a2a54" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+              <circle id="bJewel" cx="125" cy="102" r="13" fill="#ff2bd6" stroke="#2a0a1c" stroke-width="2.5"/>
+              <circle cx="121" cy="98" r="4" fill="#fff" opacity=".7"/>
+            </g>
+            <g id="bOrnGold" style="display:none"><path d="M125 38 q-38 -6 -60 26 q-20 24 -14 52 q4 24 30 34 q22 8 44 2 q22 6 44 -2 q26 -10 30 -34 q6 -28 -14 -52 q-22 -32 -60 -26z" fill="none" stroke="#ffe066" stroke-width="2.5" opacity=".85"/></g>
+            <g id="bOrnEye" style="display:none"><ellipse cx="125" cy="102" rx="20" ry="12" fill="#120306"/><ellipse cx="125" cy="102" rx="18" ry="10" fill="#ff2bd6"/><circle cx="125" cy="102" r="5" fill="#120306"/><ellipse cx="125" cy="102" rx="28" ry="17" fill="none" stroke="#ff2bd6" stroke-width="2" opacity=".5" filter="url(#bsoft)"/></g>
+          </svg>
+          <svg id="discoSvg" width="300" height="270" viewBox="0 0 250 215" style="display:none">
+            <defs><radialGradient id="mirrorGrad" cx="35%" cy="28%" r="75%"><stop offset="0%" stop-color="#ffffff"/><stop offset="45%" stop-color="#cfd8ff"/><stop offset="100%" stop-color="#5a4a9a"/></radialGradient></defs>
+            <ellipse cx="125" cy="198" rx="70" ry="12" fill="#000" opacity=".3"/>
+            <g id="discoRays">
+              <path d="M125 105 L18 16 L60 6 Z" fill="#ff4d6d" opacity=".2"/>
+              <path d="M125 105 L232 16 L190 6 Z" fill="#3ae0c2" opacity=".2"/>
+              <path d="M125 105 L60 214 L18 194 Z" fill="#ffe066" opacity=".18"/>
+              <path d="M125 105 L190 214 L232 194 Z" fill="#c060ff" opacity=".18"/>
+            </g>
+            <line x1="125" y1="6" x2="125" y2="46" stroke="#2a2a3a" stroke-width="3"/>
+            <g id="discoBall">
+              <circle cx="125" cy="106" r="60" fill="url(#mirrorGrad)" stroke="#1c1430" stroke-width="3"/>
+              <g stroke="#1c1430" stroke-width="1.4" opacity=".55">
+                <path d="M65 106 h120 M70 82 h110 M70 130 h110 M80 62 h90 M80 150 h90 M96 46 h58 M96 166 h58"/>
+                <path d="M125 46 v120 M101 48 v116 M149 48 v116 M83 56 v100 M167 56 v100 M69 74 v64 M181 74 v64"/>
+              </g>
+              <g id="discoSparkle" fill="#fff">
+                <rect x="90" y="68" width="6" height="6" transform="rotate(45 93 71)"/>
+                <rect x="150" y="80" width="5" height="5" transform="rotate(45 152 82)"/>
+                <rect x="110" y="130" width="6" height="6" transform="rotate(45 113 133)"/>
+                <rect x="160" y="120" width="4" height="4" transform="rotate(45 162 122)"/>
+                <rect x="80" y="110" width="5" height="5" transform="rotate(45 82 112)"/>
+                <rect x="130" y="60" width="4" height="4" transform="rotate(45 132 62)"/>
+              </g>
+            </g>
           </svg>
           </div>
         </div>

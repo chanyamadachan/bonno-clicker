@@ -1,12 +1,13 @@
 import { state, activeBuildings, activeLowids } from "../core/state.js";
-import { houyouOn, lowCount } from "../core/formulas.js";
+import { houyouOn, lowCount, feverOn } from "../core/formulas.js";
 import { fmtRate } from "../core/format.js";
 import { bong } from "../core/audio.js";
 import { SPRITE_URL, CHILL_URL } from "../core/sprites.js";
 import { BUILDINGS } from "../data/buildings.js";
 import { BUILDINGS_SHU } from "../data/buildings-shu.js";
 import { UP } from "../data/upgrades.js";
-import { CHILL, MOKTIERS } from "../data/content.js";
+import { UP_SHU } from "../data/upgrades-shu.js";
+import { CHILL, MOKTIERS, MOKTIERS_SHU } from "../data/content.js";
 import { $, zone, tip, scenery, shake, toastEl } from "./dom.js";
 import { addItem } from "./rain.js";
 
@@ -14,12 +15,28 @@ let chillTier=-1;
 export function renderChill(tier){if(tier===chillTier)return;const prev=chillTier;chillTier=tier;const box=$("chill");box.innerHTML="";
   CHILL.forEach(cfg=>{if(cfg.t>tier)return;const el=document.createElement("div");el.className="chillsp pix"+(cfg.t>prev?" pop":"");el.style.left=cfg.x+"%";el.style.top=cfg.y+"%";el.style.backgroundImage="url("+(CHILL_URL[cfg.k]||"")+")";el.style.animationDelay=(cfg.x%5*0.4)+"s";if(cfg.zzz)el.innerHTML='<span class="zzz">z</span>';box.appendChild(el);});}
 
-export function applyMokTier(t){const T=MOKTIERS[t];$("g0").setAttribute("stop-color",T.body[0]);$("g1").setAttribute("stop-color",T.body[1]);$("g2").setAttribute("stop-color",T.body[2]);$("jewel").setAttribute("fill",T.jewel);$("ornGold").style.display=T.gold?"":"none";$("ornFlame").style.display=T.flame?"":"none";$("ornEye").style.display=T.eye?"":"none";$("ornHalo").style.display=T.halo?"":"none";$("mokSvg").style.filter=T.glow||"";$("moktier").textContent=T.name;renderChill(t);}
-export function tierUp(t){applyMokTier(t);bong(true);shake();const z=zone;z.classList.remove("morph");void z.offsetWidth;z.classList.add("morph");for(let i=0;i<20;i++)addItem();toastEl("morph","木魚が変化",MOKTIERS[t].name,"桁が上がった");}
+// faction/feverの状態に応じてmokSvg・bellSvg・brainSvg・discoSvgの4枚から出すべき1枚を切り替える。
+// applyMokTier(ティア変化)とevents.js(フィーバー開始/終了)の両方から呼ばれる。
+export function updateClickVisual(){
+  const shu=state.s.faction==="shu",fever=feverOn();
+  $("mokSvg").style.display=(!shu&&!fever)?"":"none";
+  $("bellSvg").style.display=(!shu&&fever)?"":"none";
+  $("brainSvg").style.display=(shu&&!fever)?"":"none";
+  $("discoSvg").style.display=(shu&&fever)?"":"none";
+}
+export function applyMokTier(t){
+  const shu=state.s.faction==="shu";
+  if(shu){const T=MOKTIERS_SHU[t];$("bg0").setAttribute("stop-color",T.body[0]);$("bg1").setAttribute("stop-color",T.body[1]);$("bg2").setAttribute("stop-color",T.body[2]);$("bJewel").setAttribute("fill",T.jewel);$("bOrnGold").style.display=T.gold?"":"none";$("bOrnSpark").style.display=T.flame?"":"none";$("bOrnEye").style.display=T.eye?"":"none";$("bOrnHalo").style.display=T.halo?"":"none";$("brainSvg").style.filter=T.glow||"";$("moktier").textContent=T.name;}
+  else{const T=MOKTIERS[t];$("g0").setAttribute("stop-color",T.body[0]);$("g1").setAttribute("stop-color",T.body[1]);$("g2").setAttribute("stop-color",T.body[2]);$("jewel").setAttribute("fill",T.jewel);$("ornGold").style.display=T.gold?"":"none";$("ornFlame").style.display=T.flame?"":"none";$("ornEye").style.display=T.eye?"":"none";$("ornHalo").style.display=T.halo?"":"none";$("mokSvg").style.filter=T.glow||"";$("moktier").textContent=T.name;}
+  updateClickVisual();renderChill(t);
+}
+export function tierUp(t){applyMokTier(t);bong(true);shake();const z=zone;z.classList.remove("morph");void z.offsetWidth;z.classList.add("morph");for(let i=0;i<20;i++)addItem();
+  const shu=state.s.faction==="shu",T=shu?MOKTIERS_SHU[t]:MOKTIERS[t];
+  toastEl("morph",shu?"脳が変化":"木魚が変化",T.name,shu?"ドーパミンが振り切れた":"桁が上がった");}
 
 let scenerySig="",prevOwn={};BUILDINGS.forEach(b=>prevOwn[b.id]=0);BUILDINGS_SHU.forEach(b=>prevOwn[b.id]=0);
 export function resetSceneryCache(){scenerySig="";chillTier=-1;}
-export function upgForBld(id){return UP.filter(u=>u.eff.t==="bld"&&u.eff.id===id&&state.s.upg[u.id]).length;}
+export function upgForBld(id){return UP.concat(UP_SHU).filter(u=>u.eff.t==="bld"&&u.eff.id===id&&state.s.upg[u.id]).length;}
 
 export function renderScenery(){
   const s=state.s,BUILDINGS=activeBuildings();

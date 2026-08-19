@@ -3,6 +3,8 @@ import { save } from "../core/save.js";
 import { $ } from "./dom.js";
 import { showGame } from "./intro.js";
 import { openRoomModal } from "./room.js";
+import { applyMokTier } from "./scenery.js";
+import { applyFactionLabels } from "./stats.js";
 
 function closeFactionModal(){
   $("factionModal").classList.remove("on");
@@ -11,6 +13,8 @@ function closeFactionModal(){
 function chooseFaction(id){
   state.s.faction = id;
   state.dirty = true;
+  applyMokTier(state.curTier); // 陣営決定で木魚⇔脳みそ等の見た目を即座に切り替える
+  applyFactionLabels();
   closeFactionModal();
   save();
   showGame();

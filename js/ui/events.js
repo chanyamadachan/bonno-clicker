@@ -1,10 +1,11 @@
 import { state } from "../core/state.js";
 import { now, fmt } from "../core/format.js";
 import { clickPower } from "../core/formulas.js";
-import { chime, bong } from "../core/audio.js";
+import { chime, bong, grooveKick, grooveHat } from "../core/audio.js";
 import { $, zone, shake, toastEl } from "./dom.js";
 import { popFloat } from "./click.js";
 import { check } from "./stats.js";
+import { updateClickVisual } from "./scenery.js";
 
 let goenEl=null,nextGoen=Date.now()+90000;
 
@@ -25,12 +26,16 @@ function grantGoen(type){
   else{state.houyouUntil=now()+15000;s.houyous++;$("houyouBanner").classList.add("on");bong(true);shake();check();}
 }
 
-export function startFever(){const s=state.s,up=state.up;state.fever.until=now()+15000+up.feverDurAdd*1000;state.fever.nextBong=0;s.feversDone++;bong();shake();$("banner").classList.add("on");$("feverbg").classList.add("on");$("mokSvg").style.display="none";$("bellSvg").style.display="";$("tapLabel").innerHTML='鐘 を 撞 け<small>フィーバー中：煩悩 ×'+(10+up.feverMulAdd)+'、一撞き大量</small>';state.dirty=true;check();}
-function endFever(){$("banner").classList.remove("on");$("feverbg").classList.remove("on");$("mokSvg").style.display="";$("bellSvg").style.display="none";$("tapLabel").innerHTML='た　た　く<small>※ リズム良く叩くと念仏が流れ、ボーナス</small>';state.dirty=true;}
+export function startFever(){const s=state.s,up=state.up,shu=s.faction==="shu";state.fever.until=now()+15000+up.feverDurAdd*1000;state.fever.nextBong=0;state.fever.nextBeat=0;s.feversDone++;if(shu){grooveKick();grooveHat(true);}else bong();shake();$("banner").classList.toggle("shu",shu);$("banner").innerHTML=shu?"🪩 ドーパミンフィーバー！脳を叩きまくれ":"🔔 鐘つきフィーバー！鐘を撞け";$("banner").classList.add("on");$("feverbg").classList.toggle("shu",shu);$("feverbg").classList.add("on");updateClickVisual();$("tapLabel").innerHTML=shu?'ミラーボールを叩け<small>フィーバー中：煩悩 ×'+(10+up.feverMulAdd)+'、一打で大量ドーパミン</small>':'鐘 を 撞 け<small>フィーバー中：煩悩 ×'+(10+up.feverMulAdd)+'、一撞き大量</small>';state.dirty=true;check();}
+function endFever(){const shu=state.s.faction==="shu";$("banner").classList.remove("on");$("feverbg").classList.remove("on");updateClickVisual();$("tapLabel").innerHTML=shu?'た　た　く<small>※ リズムよく叩くとテンションが上がり、ボーナス</small>':'た　た　く<small>※ リズム良く叩くと念仏が流れ、ボーナス</small>';state.dirty=true;}
 
 export function feverTick(t){
-  const s=state.s,up=state.up;
-  if(state.fever.until>t){if(t>=state.fever.nextBong){state.fever.nextBong=t+2000;bong();const b=s.cps*3+clickPower()*10;s.bonno+=b;s.total+=b;}}else if($("banner").classList.contains("on"))endFever();
+  const s=state.s,up=state.up,shu=s.faction==="shu";
+  if(state.fever.until>t){
+    if(t>=state.fever.nextBong){state.fever.nextBong=t+2000;if(shu){grooveKick();grooveHat(true);}else bong();const b=s.cps*3+clickPower()*10;s.bonno+=b;s.total+=b;}
+    // 煩悩陣営のフィーバー中は生産量に影響しない短い間隔で四つ打ちビートを重ねる（クラブのミラーボール演出用）。
+    if(shu&&t>=state.fever.nextBeat){state.fever.nextBeat=t+300;grooveKick();grooveHat(false);}
+  }else if($("banner").classList.contains("on"))endFever();
   if(state.frenzyUntil<=t&&$("frenzyBanner").classList.contains("on"))$("frenzyBanner").classList.remove("on");
   if(state.houyouUntil<=t&&$("houyouBanner").classList.contains("on"))$("houyouBanner").classList.remove("on");
   if(!goenEl&&t>=nextGoen){spawnGoen();nextGoen=t+(120000+Math.random()*120000)*up.feverFreqMul;}

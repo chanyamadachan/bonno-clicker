@@ -1,9 +1,8 @@
-import { state, activeBuildings, inactiveBuildings, upgCount } from "../core/state.js";
+import { state, activeBuildings, inactiveBuildings, activeUP, inactiveUP, upgCount } from "../core/state.js";
 import { costOf, maxAff, revealed, computeUp } from "../core/formulas.js";
 import { fmt, fmtRate } from "../core/format.js";
 import { pok, chime } from "../core/audio.js";
 import { SPRITE_URL, SPRITE_SIL } from "../core/sprites.js";
-import { UP } from "../data/upgrades.js";
 import { $, rows, upRows, upTeaser } from "./dom.js";
 import { upgForBld } from "./scenery.js";
 import { renderScenery } from "./scenery.js";
@@ -25,7 +24,10 @@ export function renderShop(){
     else{r.revealed=false;r.el.className="bld hide";}});
   // 陣営を選び直した/選ぶ前に描画された、非対象側の発生源行の残留表示を毎回掃除する。
   inactiveBuildings().forEach(b=>{const r=rows[b.id];if(r.el.className!=="bld hide"){r.el.className="bld hide";r.revealed=false;r.mode="";}});
+  const UP=activeUP();
   UP.forEach(u=>{const r=upRows[u.id],vis=!s.upg[u.id]&&u.cond(s);r.visible=vis;if(!vis){r.el.className="bld up hide";return;}const aff=s.bonno>=u.cost;r.aff=aff;r.el.className="bld up"+(aff?" afford":" cant");r.cost.textContent=fmt(u.cost);r.cost.className="cost"+(aff?"":" no");});
+  // 陣営を選び直した/選ぶ前に描画された、非対象側の学び行の残留表示を毎回掃除する(発生源と同じ理由、CLAUDE.md参照)。
+  inactiveUP().forEach(u=>{const r=upRows[u.id];if(r.el.className!=="bld up hide"){r.el.className="bld up hide";r.visible=false;}});
   const locked=UP.some(u=>!s.upg[u.id]&&!u.cond(s));upTeaser.className="bld up locked"+(locked?"":" hide");
   let buyable=0;UP.forEach(u=>{if(upRows[u.id].visible&&upRows[u.id].aff)buyable++;});$("upCount").textContent="取得 "+upgCount()+(buyable>0?"　買える "+buyable:"");
   renderScenery();
@@ -34,5 +36,5 @@ export function renderShop(){
 export function updateAfford(){
   const s=state.s;
   activeBuildings().forEach(b=>{const r=rows[b.id];if(!r.revealed)return;const a=s.bonno>=r.costVal;if(a!==r.aff){r.aff=a;r.el.classList.toggle("afford",a);r.el.classList.toggle("cant",!a);}});
-  UP.forEach(u=>{const r=upRows[u.id];if(!r.visible)return;const a=s.bonno>=u.cost;if(a!==r.aff){r.aff=a;r.el.classList.toggle("afford",a);r.el.classList.toggle("cant",!a);}});
+  activeUP().forEach(u=>{const r=upRows[u.id];if(!r.visible)return;const a=s.bonno>=u.cost;if(a!==r.aff){r.aff=a;r.el.classList.toggle("afford",a);r.el.classList.toggle("cant",!a);}});
 }

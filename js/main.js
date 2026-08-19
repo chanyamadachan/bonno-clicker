@@ -8,7 +8,7 @@ import { $, zone, tk } from "./ui/dom.js";
 import { applyMokTier, tierUp, initSceneryTooltip } from "./ui/scenery.js";
 import { sizeRain, addItem, stepRain } from "./ui/rain.js";
 import { renderShop, updateAfford } from "./ui/shop.js";
-import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check, rotateNews } from "./ui/stats.js";
+import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check, rotateNews, applyFactionLabels } from "./ui/stats.js";
 import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
 import { initFactionUI } from "./ui/faction.js";
@@ -60,6 +60,7 @@ async function init(){
   offlineWelcome(lastSeen);
   state.curTier = mokTierOf(state.s.total);
   applyMokTier(state.curTier);
+  applyFactionLabels();
   state.lastPeak = state.s.bonno;
   initRank(rankIdx());
   renderActivePerks();

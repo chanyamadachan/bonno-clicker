@@ -3,6 +3,7 @@ import { now } from "./format.js";
 import { BUILDINGS } from "../data/buildings.js";
 import { BUILDINGS_SHU } from "../data/buildings-shu.js";
 import { UP } from "../data/upgrades.js";
+import { UP_SHU } from "../data/upgrades-shu.js";
 import { PERKS } from "../data/perks.js";
 import { RANKS, MOKTIERS } from "../data/content.js";
 
@@ -15,7 +16,7 @@ export function computeUp(){
   const up=state.up;
   BUILDINGS.forEach(b=>up.bld[b.id]=1);
   BUILDINGS_SHU.forEach(b=>up.bld[b.id]=1);
-  UP.forEach(u=>{if(!state.s.upg[u.id])return;const e=u.eff;if(e.t==="click")up.clickMul*=e.m;else if(e.t==="global")up.globalMul*=e.m;else if(e.t==="bld")up.bld[e.id]*=e.m;else if(e.t==="clickcps")up.clickFromCps+=e.m;else if(e.t==="feverdur")up.feverDurAdd+=e.m;else if(e.t==="feverfreq")up.feverFreqMul*=e.m;else if(e.t==="fevermul")up.feverMulAdd+=e.m;else if(e.t==="gou")up.gouPer=Math.max(up.gouPer,e.m);else if(e.t==="combo")up.comboStep+=e.m;else if(e.t==="combomax")up.comboMax+=e.m;else if(e.t==="crit")up.critChance+=e.m;else if(e.t==="critmul")up.critMul+=e.m;else if(e.t==="goldpow")up.goldPow+=e.m;else if(e.t==="offline")up.offlineEff+=e.m;else if(e.t==="synergy")up.lowSynergy+=e.m;else if(e.t==="houyoup")up.houyouPer+=e.m;});
+  UP.concat(UP_SHU).forEach(u=>{if(!state.s.upg[u.id])return;const e=u.eff;if(e.t==="click")up.clickMul*=e.m;else if(e.t==="global")up.globalMul*=e.m;else if(e.t==="bld")up.bld[e.id]*=e.m;else if(e.t==="clickcps")up.clickFromCps+=e.m;else if(e.t==="feverdur")up.feverDurAdd+=e.m;else if(e.t==="feverfreq")up.feverFreqMul*=e.m;else if(e.t==="fevermul")up.feverMulAdd+=e.m;else if(e.t==="gou")up.gouPer=Math.max(up.gouPer,e.m);else if(e.t==="combo")up.comboStep+=e.m;else if(e.t==="combomax")up.comboMax+=e.m;else if(e.t==="crit")up.critChance+=e.m;else if(e.t==="critmul")up.critMul+=e.m;else if(e.t==="goldpow")up.goldPow+=e.m;else if(e.t==="offline")up.offlineEff+=e.m;else if(e.t==="synergy")up.lowSynergy+=e.m;else if(e.t==="houyoup")up.houyouPer+=e.m;});
   PERKS.forEach(p=>{if(state.s.perks[p.id])p.eff(up);});
 }
 

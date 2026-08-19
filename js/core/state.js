@@ -1,5 +1,7 @@
 import { BUILDINGS, LOWIDS } from "../data/buildings.js";
 import { BUILDINGS_SHU, LOWIDS_SHU } from "../data/buildings-shu.js";
+import { UP } from "../data/upgrades.js";
+import { UP_SHU } from "../data/upgrades-shu.js";
 
 export const KEY = "bonno-clicker-save-v9";
 
@@ -21,11 +23,14 @@ export function activeBuildings(){ return state.s.faction==="shu" ? BUILDINGS_SH
 export function activeLowids(){ return state.s.faction==="shu" ? LOWIDS_SHU : LOWIDS; }
 // 選ばれなかった側の発生源データセット。陣営選択前後でショップDOMに残る取りこぼしを掃除する用途。
 export function inactiveBuildings(){ return state.s.faction==="shu" ? BUILDINGS : BUILDINGS_SHU; }
+// 陣営ごとの「学び」データセット。activeBuildings()と同じ考え方(faction===null間は仏教陣営を既定値とする)。
+export function activeUP(){ return state.s.faction==="shu" ? UP_SHU : UP; }
+export function inactiveUP(){ return state.s.faction==="shu" ? UP : UP_SHU; }
 
 export const state = {
   s: fresh(),
   up: {},
-  fever: {until:0, nextBong:0},
+  fever: {until:0, nextBong:0, nextBeat:0},
   curTier: 0,
   curMult: 1,
   buyQty: 1,

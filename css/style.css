@@ -126,11 +126,14 @@
   .clickzone.hint::after{content:"叩いてみよう";position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:var(--serif);font-size:13px;color:#ffdd80;text-shadow:0 1px 3px #000;animation:momopulse 1s ease-in-out infinite;pointer-events:none}
   .mokwrap{transform-origin:center center;animation:breathe 3.6s ease-in-out infinite}
   .clickzone svg{display:block}
-  #mokBody,#bellBody,#shumoku{transform-box:fill-box;transform-origin:center}
+  #mokBody,#bellBody,#shumoku,#brainBody,#discoBall{transform-box:fill-box;transform-origin:center}
   .clickzone.hit #mokBody{animation:squish .16s ease}
   .clickzone.hit #bellBody{animation:bellhit .16s ease}
   .clickzone.hit #shumoku{animation:strike .16s ease}
+  .clickzone.hit #brainBody{animation:squish .16s ease}
+  .clickzone.hit #discoBall{animation:bellhit .16s ease}
   .clickzone.morph #mokSvg{animation:morph .6s ease}
+  .clickzone.morph #brainSvg{animation:morph .6s ease}
   .clickzone.mode-warmup .mokwrap{animation:breathe 3.6s ease-in-out infinite,seijakuWarm 1.2s ease-in-out infinite}
   .clickzone.mode-seijaku .mokwrap{animation:breathe 3.6s ease-in-out infinite,seijakuGlow 2.2s ease-in-out infinite}
   .clickzone.mode-bousou .mokwrap{animation:breathe 3.6s ease-in-out infinite,bousouGlow .45s ease-in-out infinite}
@@ -143,8 +146,19 @@
   @keyframes bellhit{0%{transform:scale(1,1)}40%{transform:scale(1.07,.96)}100%{transform:scale(1,1)}}
   @keyframes strike{0%{transform:translateX(0)}40%{transform:translateX(-16px)}100%{transform:translateX(0)}}
   @keyframes morph{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(2)}100%{transform:scale(1)}}
-  #ornHalo{animation:spin 40s linear infinite;transform-box:fill-box;transform-origin:center}
+  #ornHalo,#bOrnHalo{animation:spin 40s linear infinite;transform-box:fill-box;transform-origin:center}
   @keyframes spin{to{transform:rotate(360deg)}}
+  #discoBall{animation:discoSpin 6s linear infinite}
+  @keyframes discoSpin{to{transform:rotate(360deg)}}
+  #discoRays{animation:spin 16s linear infinite;transform-box:fill-box;transform-origin:125px 105px}
+  #discoSparkle rect{animation:sparkleTwinkle 1s ease-in-out infinite}
+  #discoSparkle rect:nth-child(2){animation-delay:.13s}
+  #discoSparkle rect:nth-child(3){animation-delay:.26s}
+  #discoSparkle rect:nth-child(4){animation-delay:.39s}
+  #discoSparkle rect:nth-child(5){animation-delay:.52s}
+  #discoSparkle rect:nth-child(6){animation-delay:.65s}
+  @keyframes sparkleTwinkle{0%,100%{opacity:.15}50%{opacity:1}}
+  #bOrnSpark{animation:sparkleTwinkle .3s ease-in-out infinite}
   .tap{margin-top:2px;font-size:13px;letter-spacing:.2em;color:#c7ac74}
   .tap small{display:block;letter-spacing:0;margin-top:3px;font-size:10px;color:#9c8358}
   .float{position:absolute;left:50%;top:42%;font-family:var(--serif);font-size:24px;color:var(--gold2);pointer-events:none;text-shadow:0 2px 0 #1c140d;animation:rise .85s ease-out forwards;z-index:5}
@@ -225,8 +239,12 @@
   .feverbg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s;background:radial-gradient(circle at 50% 40%,rgba(255,221,128,.26),transparent 46%)}
   .feverbg::before{content:"";position:absolute;inset:-30%;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,221,128,.15) 0deg 9deg,transparent 9deg 22deg);animation:spin 30s linear infinite}
   .feverbg.on{opacity:1}
+  .feverbg.shu{background:radial-gradient(circle at 50% 40%,rgba(255,60,190,.3),transparent 48%)}
+  .feverbg.shu::before{background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,60,190,.2) 0deg 6deg,rgba(80,220,255,.16) 6deg 12deg,rgba(255,224,90,.16) 12deg 18deg,transparent 18deg 30deg);animation:discoSweep 5s linear infinite}
+  @keyframes discoSweep{to{transform:rotate(360deg)}}
   .banner{position:fixed;top:40px;left:50%;transform:translateX(-50%);z-index:38;font-family:var(--serif);background:linear-gradient(180deg,#ffe08a,#f0b52e);color:#4a2f00;border:2px solid #7a4a10;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.35);padding:6px 20px;font-size:15px;letter-spacing:.04em;display:none;pointer-events:none}
   .banner.on{display:block}
+  .banner.shu{background:linear-gradient(180deg,#ff9fd4,#ff2b8a);color:#3a0018;border-color:#7a0038}
   .banner2{position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:38;font-family:var(--serif);background:linear-gradient(180deg,#ff9a5a,#e0432a);color:#3a0f00;border:2px solid #7a1f10;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.35);padding:5px 18px;font-size:14px;display:none;pointer-events:none}
   .banner2.on{display:block}
   .banner3{position:fixed;top:116px;left:50%;transform:translateX(-50%);z-index:38;font-family:var(--serif);background:linear-gradient(180deg,#f0a0c8,#c0468a);color:#3a0f2a;border:2px solid #7a1f56;border-radius:6px;box-shadow:0 3px 0 rgba(0,0,0,.35);padding:5px 18px;font-size:14px;display:none;pointer-events:none}

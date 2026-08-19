@@ -2,6 +2,8 @@ import { $ } from "./dom.js";
 import { state } from "../core/state.js";
 import { save } from "../core/save.js";
 import { showGame } from "./intro.js";
+import { applyMokTier } from "./scenery.js";
+import { applyFactionLabels } from "./stats.js";
 
 const API_BASE = "/backend/public/api";
 const POLL_INTERVAL_MS = 15 * 1000; // 少人数・短時間のルーム対戦は世界情勢(60秒)より短い間隔で確認する
@@ -56,6 +58,8 @@ function updateFactionPick(){
 function pickFaction(id){
   state.s.faction = id;
   state.dirty = true;
+  applyMokTier(state.curTier);
+  applyFactionLabels();
   save();
   updateFactionPick();
 }

@@ -15,6 +15,16 @@ export const MOKTIERS=[
   {min:1e12,name:"曼荼羅の木魚",body:["#ffe9a8","#e6b84a","#9a6b1a"],jewel:"#ff3b3b",gold:1,flame:1,eye:1,halo:1,glow:"drop-shadow(0 0 22px rgba(255,215,120,.9))"},
 ];
 
+// 煩悩陣営の「叩く対象」＝脳みそのティア変化。MOKTIERSと同じmin閾値・同じ意味のプロパティ(gold/flame/eye/halo)を
+// 使い回し、scenery.jsのapplyMokTier()が陣営分岐で参照する。
+export const MOKTIERS_SHU=[
+  {min:0,name:"生まれたての脳みそ",body:["#ffd0e0","#ff8fb8","#a03a68"],jewel:"#ff2bd6",gold:0,flame:0,eye:0,halo:0,glow:""},
+  {min:1e4,name:"ときめきピンク脳",body:["#ffb0d8","#ff4fa8","#8a1a54"],jewel:"#ff1ae0",gold:0,flame:0,eye:0,halo:0,glow:"drop-shadow(0 4px 8px rgba(255,43,214,.4))"},
+  {min:1e8,name:"バキバキ覚醒脳",body:["#fff2a0","#ffcf30","#a07a10"],jewel:"#ffee00",gold:1,flame:0,eye:0,halo:0,glow:"drop-shadow(0 0 12px rgba(255,230,0,.6))"},
+  {min:1e10,name:"限界突破ドーパミン脳",body:["#d090ff","#8a2ae0","#3a0a6a"],jewel:"#ff2bff",gold:1,flame:1,eye:1,halo:0,glow:"drop-shadow(0 0 18px rgba(200,40,255,.7))"},
+  {min:1e12,name:"宇宙まで突き抜けた脳",body:["#ffe9ff","#ff6bf0","#4a0a8a"],jewel:"#fff23b",gold:1,flame:1,eye:1,halo:1,glow:"drop-shadow(0 0 26px rgba(255,80,220,.95))"},
+];
+
 export const CHILL=[
   {k:"catSleep",x:6,y:22,t:0,zzz:1},{k:"catLoaf",x:11,y:64,t:1},{k:"teacup",x:90,y:37,t:1},{k:"bozu",x:91,y:65,t:1,zzz:1},{k:"zabuton",x:8,y:92,t:1},
   {k:"koTanuki",x:10,y:37,t:2},{k:"jizo",x:5,y:50,t:2},{k:"koTanuki",x:16,y:9,t:2},{k:"oshou",x:7,y:90,t:2,zzz:1},{k:"jizo",x:85,y:93,t:2},
