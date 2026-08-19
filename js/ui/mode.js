@@ -53,7 +53,7 @@ export function renderModeUI(){
   zone.classList.remove("mode-warmup", "mode-seijaku", "mode-bousou", "mode-cooldown");
 
   if(s.faction==="kon"){
-    bar.style.display = ""; seijakuBtn.style.display = ""; bousouBtn.style.display = "none";
+    bar.style.display = ""; seijakuBtn.style.display = "inline-block"; bousouBtn.style.display = "none";
     if(seijakuWarmingUp()){
       seijakuBtn.textContent = "静寂へ…"; seijakuBtn.disabled = true;
       zone.classList.add("mode-warmup");
@@ -70,7 +70,7 @@ export function renderModeUI(){
       statusEl.textContent = "";
     }
   }else if(s.faction==="shu"){
-    bar.style.display = ""; seijakuBtn.style.display = "none"; bousouBtn.style.display = "";
+    bar.style.display = ""; seijakuBtn.style.display = "none"; bousouBtn.style.display = "inline-block";
     if(bousouActive()){
       bousouBtn.textContent = "暴走中"; bousouBtn.disabled = true;
       zone.classList.add("mode-bousou");

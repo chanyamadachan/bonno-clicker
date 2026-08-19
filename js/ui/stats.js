@@ -3,7 +3,7 @@ import { fmt, fmtTime } from "../core/format.js";
 import { rankOf, rebirthReq, canRebirth } from "../core/formulas.js";
 import { fanfare, chime } from "../core/audio.js";
 import { ACH } from "../data/achievements.js";
-import { NEWS } from "../data/content.js";
+import { NEWS, WORLD_NEWS } from "../data/content.js";
 import { $, tk, achEls, shake, toastEl } from "./dom.js";
 
 export function check(){
@@ -34,4 +34,5 @@ let prevRankI=-1;
 export function initRank(ri){prevRankI=ri;}
 export function checkRankChange(ri){if(ri!==prevRankI){if(prevRankI>=0&&ri>prevRankI)celebrateRank();prevRankI=ri;}}
 
-export function rotateNews(){tk.style.opacity="0";setTimeout(()=>{tk.innerHTML=NEWS[(Math.random()*NEWS.length)|0]();tk.style.opacity="1";},300);}
+const newsPool=NEWS.concat(WORLD_NEWS);
+export function rotateNews(){tk.style.opacity="0";setTimeout(()=>{tk.innerHTML=newsPool[(Math.random()*newsPool.length)|0]();tk.style.opacity="1";},300);}

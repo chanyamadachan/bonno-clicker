@@ -12,7 +12,7 @@ import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check,
 import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
 import { maybeShowFactionPrompt, initFactionUI } from "./ui/faction.js";
-import { renderWorldGauge } from "./ui/world.js";
+import { renderWorldGauge, initWorldHistory } from "./ui/world.js";
 import { initRoomUI, updateRoomChip } from "./ui/room.js";
 import { initModeUI, renderModeUI } from "./ui/mode.js";
 import { tickFactionSend } from "./core/faction.js";
@@ -68,6 +68,7 @@ async function init(){
   initFactionUI();
   initRoomUI();
   initModeUI();
+  initWorldHistory();
   maybeShowFactionPrompt();
   state.dirty = true;
   requestAnimationFrame(frame);

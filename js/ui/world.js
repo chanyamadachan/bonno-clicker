@@ -8,6 +8,15 @@ const FETCH_INTERVAL_MS = 60 * 1000; // 世界情勢の取得は60秒おきで�
 // あくまで即時フィードバック用の見た目上の概算であり、実際のCP・天秤はサーバーが権威(3.2の設計方針どおり)。
 const CLIENT_K_GUESS = 12.0;
 
+// 情勢推移グラフ(企画設計書 5.3)。faction_totalsの履歴API(バックエンド)は現状存在しないため、
+// このブラウザが実際にworld-statusを取得できた瞬間の値だけを端末ローカルに積み上げる簡易版
+// (「7日間の世界全体の推移」ではなく「このブラウザで見てきた直近の推移」に近い点は割り切り)。
+const HISTORY_KEY = "bonno-clicker-world-history-v1";
+const HISTORY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const HISTORY_MAX_POINTS = 500;
+const historyStore = (typeof window !== "undefined" && window.storage) ? window.storage : null;
+let history = [];
+
 const LABELS = [
   { max: -0.6, text: "涅槃寂静" },
   { max: -0.2, text: "平穏" },
@@ -27,6 +36,21 @@ let fetching = false;
 // 直近のworld-status取得時点でのs.total(5.11)。nullの間は仮反映を行わない(初回取得前に生涯累計を仮反映しないため)。
 let totalAtLastFetch = null;
 
+async function loadHistory(){
+  if(!historyStore) return;
+  try{
+    const r = await historyStore.get(HISTORY_KEY, false);
+    if(r && r.value) history = JSON.parse(r.value) || [];
+  }catch(e){}
+  renderHistorySpark();
+}
+
+function pruneHistory(){
+  const cutoff = Date.now() - HISTORY_MAX_AGE_MS;
+  history = history.filter(p=>p.t>=cutoff);
+  if(history.length>HISTORY_MAX_POINTS) history = history.slice(history.length-HISTORY_MAX_POINTS);
+}
+
 async function refreshWorldStatus(){
   if(fetching) return;
   fetching = true;
@@ -36,12 +60,31 @@ async function refreshWorldStatus(){
       cached = await res.json();
       // この時点までの増分はもう「実測値」に含まれたはずなので、仮反映の起点をここへ進める。
       totalAtLastFetch = state.s.total;
+      // 実測できたバランス値だけを履歴に積む(仮反映値は含めない、5.3)。
+      history.push({ t: Date.now(), balance: cached.balance });
+      pruneHistory();
+      renderHistorySpark();
+      if(historyStore){ try{ historyStore.set(HISTORY_KEY, JSON.stringify(history), false); }catch(e){} }
     }
   }catch(e){
     // API未設置・オフライン等は下のダミー値表示にフォールバックする(本編プレイは一切ブロックしない)。
   }finally{
     fetching = false;
   }
+}
+
+function renderHistorySpark(){
+  const svg = $("worldHistorySpark");
+  if(!svg) return;
+  if(history.length<2){ svg.innerHTML=""; return; }
+  const W=130,H=20;
+  const tMin=history[0].t, tMax=history[history.length-1].t, span=Math.max(1,tMax-tMin);
+  const pts = history.map(p=>{
+    const x = ((p.t-tMin)/span)*W;
+    const y = H - ((Math.max(-1,Math.min(1,p.balance))+1)/2)*H;
+    return x.toFixed(1)+","+y.toFixed(1);
+  }).join(" ");
+  svg.innerHTML = `<line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" class="wh-mid"/><polyline points="${pts}" class="wh-line"/>`;
 }
 
 // 自分の直近の生産分(前回のworld-status取得以降の増分)を、天秤にその場でうっすら仮反映する(5.11)。
@@ -71,6 +114,20 @@ function computeDisplayBalance(){
 // バックエンド未接続時(ローカル開発・API障害時)は、ゆるやかに動くダミー値で見た目だけ成立させる。
 function dummyBalance(){
   return Math.sin(Date.now()/600000)*0.6;
+}
+
+// 世界の見た目そのものへの反映(企画設計書 5.8)。背景を仏教寄り(静謐・青)⇔煩悩寄り(喧騒・赤)に
+// リアルタイムで色付けする。拮抗(0付近)ではほぼ見えず、傾くほど強く出す。
+// (合成音のドローンによる演出はコスト・リスクに対して効果検証が難しいため、このStepでは見送り)
+let lastToneBucket = null;
+function renderWorldTone(balance){
+  const mag = Math.min(1, Math.abs(balance));
+  const bucket = Math.round(mag*20); // 0.05刻みで丸め、微小変動での無駄なstyle書き換えを避ける
+  if(bucket===lastToneBucket) return;
+  lastToneBucket = bucket;
+  const alpha = (0.04 + mag*0.20).toFixed(3);
+  const color = balance>=0 ? `rgba(180,40,60,${alpha})` : `rgba(50,95,155,${alpha})`;
+  $("worldTone").style.background = `radial-gradient(120% 90% at 50% 8%, ${color}, transparent 70%)`;
 }
 
 // 母数の誠実な開示(企画設計書 5.10 / 9.3 Step 3-1)。人数を隠さず「今が一番一打の重みが大きい」文脈で見せる。
@@ -112,5 +169,11 @@ export function renderWorldGauge(){
   $("worldMarker").style.left = ((balance+1)/2*100)+"%";
   $("worldMarker").classList.toggle("pending", pending);
   $("worldLabel").textContent = labelFor(balance);
+  renderWorldTone(balance);
   renderPopulation();
+}
+
+// main.js の起動シーケンスから呼ぶ(トップレベルでの即時await/副作用を避ける、CLAUDE.mdの循環import注意)。
+export function initWorldHistory(){
+  loadHistory();
 }
