@@ -151,13 +151,33 @@ async function cmdBoon(faction = 'kon') {
   if (errors.length > 0) process.exitCode = 1;
 }
 
+// 持ち帰り演出(企画設計書 5.14 / 9.3 Step 3-6)の確認用。visibilitychange=hiddenを
+// document.dispatchEventで疑似発火させ、離脱トーストが出ることを確認する。
+async function cmdFarewell() {
+  await ensureServer();
+  const { browser, page, errors } = await openApp();
+  await page.waitForTimeout(1000); // world-status.php の初回取得を待つ(ミニグラフの履歴を積むため)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: path.join(SHOT_DIR, 'farewell-01-shown.png') });
+  const toastCount = await page.locator('.ofuda.farewell').count();
+  console.log('[driver] farewell toast count:', toastCount);
+  console.log('[driver] console/page errors:', JSON.stringify(errors, null, 2));
+  await browser.close();
+  if (errors.length > 0) process.exitCode = 1;
+}
+
 const [, , cmd, arg] = process.argv;
 switch (cmd) {
   case 'serve': await cmdServe(); break;
   case 'smoke': await cmdSmoke(); break;
   case 'screenshot': await cmdScreenshot(arg); break;
   case 'boon': await cmdBoon(arg); break;
+  case 'farewell': await cmdFarewell(); break;
   default:
-    console.error('usage: node driver.mjs <serve|smoke|screenshot [name]|boon [kon|shu]>');
+    console.error('usage: node driver.mjs <serve|smoke|screenshot [name]|boon [kon|shu]|farewell>');
     process.exit(1);
 }

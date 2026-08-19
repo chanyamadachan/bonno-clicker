@@ -75,19 +75,26 @@ async function refreshWorldStatus(){
   }
 }
 
-function renderHistorySpark(){
-  const svg = $("worldHistorySpark");
-  if(!svg) return;
-  if(history.length<2){ svg.innerHTML=""; return; }
-  const W=130,H=20;
-  const tMin=history[0].t, tMax=history[history.length-1].t, span=Math.max(1,tMax-tMin);
-  const pts = history.map(p=>{
+// 情勢推移グラフのSVG中身を組み立てる(5.3)。持ち帰り演出(5.14)のミニグラフでも再利用するためexportする。
+export function buildSparkMarkup(hist, W, H){
+  if(hist.length<2) return "";
+  const tMin=hist[0].t, tMax=hist[hist.length-1].t, span=Math.max(1,tMax-tMin);
+  const pts = hist.map(p=>{
     const x = ((p.t-tMin)/span)*W;
     const y = H - ((Math.max(-1,Math.min(1,p.balance))+1)/2)*H;
     return x.toFixed(1)+","+y.toFixed(1);
   }).join(" ");
-  svg.innerHTML = `<line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" class="wh-mid"/><polyline points="${pts}" class="wh-line"/>`;
+  return `<line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" class="wh-mid"/><polyline points="${pts}" class="wh-line"/>`;
 }
+
+function renderHistorySpark(){
+  const svg = $("worldHistorySpark");
+  if(!svg) return;
+  svg.innerHTML = buildSparkMarkup(history, 130, 20);
+}
+
+// 持ち帰り演出(9.3 Step 3-6)が縮小版ミニグラフを描くための参照用getter。
+export function getWorldHistory(){ return history; }
 
 // 自分の直近の生産分(前回のworld-status取得以降の増分)を、天秤にその場でうっすら仮反映する(5.11)。
 // 実測値と混同しないよう、呼び出し側で.wmarkerに`pending`クラスを付けて見た目を変える。

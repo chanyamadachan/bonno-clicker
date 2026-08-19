@@ -194,7 +194,10 @@
   .ofuda.morph::before{content:"変"} .ofuda.goen::before{content:"縁";background:#e79b16}
   .ofuda.welcome::before{content:"還";background:#2f8f2f} .ofuda.luck::before{content:"福";background:#2f8f2f} .ofuda.rank::before{content:"位";background:#7a4fb0} .ofuda.houyou::before{content:"法";background:#b5473a}
   .ofuda.seido::before{content:"済";background:#2b4159} .ofuda.yuuwaku::before{content:"誘";background:#b7401f}
-  .ofuda.welcome{animation:slidein .4s cubic-bezier(.2,1.2,.4,1),out .5s ease 5.4s forwards}
+  .ofuda.farewell::before{content:"歸";background:#5b7596}
+  .ofuda.welcome,.ofuda.farewell{animation:slidein .4s cubic-bezier(.2,1.2,.4,1),out .5s ease 5.4s forwards}
+  .ofuda.farewell{min-width:220px}
+  .farewell-spark{display:block;width:100%;height:24px;margin-top:6px}
   .ofuda .ot{font-size:9px;letter-spacing:.2em;color:#a86a2e}
   .ofuda .on{font-family:var(--serif);font-size:14px;margin-top:1px}
   .ofuda .ok{font-size:10px;color:var(--mura);margin-top:1px}

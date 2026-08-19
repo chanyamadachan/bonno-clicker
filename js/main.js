@@ -16,6 +16,7 @@ import { renderWorldGauge, initWorldHistory } from "./ui/world.js";
 import { initRoomUI, updateRoomChip } from "./ui/room.js";
 import { initModeUI, renderModeUI } from "./ui/mode.js";
 import { initBoonUI, renderBoonUI } from "./ui/boon.js";
+import { initFarewellUI } from "./ui/farewell.js";
 import { tickFactionSend } from "./core/faction.js";
 import "./ui/click.js";
 
@@ -71,6 +72,7 @@ async function init(){
   initModeUI();
   initBoonUI();
   initWorldHistory();
+  initFarewellUI();
   maybeShowFactionPrompt();
   state.dirty = true;
   requestAnimationFrame(frame);
