@@ -60,6 +60,8 @@ async function refreshWorldStatus(){
       cached = await res.json();
       // この時点までの増分はもう「実測値」に含まれたはずなので、仮反映の起点をここへ進める。
       totalAtLastFetch = state.s.total;
+      // 誘惑(5.13)はサーバー権威の状態。世界情勢の取得タイミングに合わせて反映する(9.3 Step 3-6)。
+      state.yuuwakuUntil = (cached.boons && cached.boons.yuuwakuUntilKon) || 0;
       // 実測できたバランス値だけを履歴に積む(仮反映値は含めない、5.3)。
       history.push({ t: Date.now(), balance: cached.balance });
       pruneHistory();
@@ -143,14 +145,21 @@ function renderPopulation(){
 
   const faction = state.s.faction;
   const boost = cached.boost && faction ? cached.boost[faction] : null;
+  const seidoBonus = cached.boons && cached.boons.seidoBonus && faction ? cached.boons.seidoBonus[faction] : 0;
   if(boost && boost > 1.01){
     const pct = Math.round((boost-1)*100);
     const label = faction==="shu" ? "煩悩陣営" : "仏教陣営";
-    $("worldBoost").textContent = `${label}は少数派のため貢献+${pct}%中`;
+    // 済度による一時ボーナス(5.13)が乗っている間は内訳を添える(0.3-Bのboost表示パイプラインを延長)。
+    const seidoNote = seidoBonus > 0.001 ? `（うち済度+${Math.round(seidoBonus*100)}%）` : "";
+    $("worldBoost").textContent = `${label}は少数派のため貢献+${pct}%中${seidoNote}`;
   }else{
     $("worldBoost").textContent = "";
   }
 }
+
+// 済度・誘惑(9.3 Step 3-6)がボタンの活性化条件をサーバーと同じ基準で先読みするための参照用getter。
+// あくまで事前フィードバック用の概算であり、実際の劣勢判定・乱用防止はサーバー側(boon-*.php)が権威。
+export function getCachedWorldStatus(){ return cached; }
 
 export function renderWorldGauge(){
   const now = Date.now();

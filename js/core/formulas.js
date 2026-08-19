@@ -33,8 +33,10 @@ export function bousouOnCooldown(){return state.s.faction==="shu"&&now()>=state.
 export function factionModeClickMul(){if(seijakuActive())return 0.6;if(bousouActive())return 2.5;return 1;}
 // クリック・CPS双方に乗る倍率。暴走終了後120秒だけ-30%(3.4のboostとは独立、state.curMult経由で両方に効く)。
 export function factionModeProdMul(){return bousouOnCooldown()?0.7:1;}
-// 暴走中はコンボ判定幅を190〜820msから150〜1000msへ拡張する。
-export function comboWindow(){return bousouActive()?[150,1000]:[190,820];}
+// 誘惑(5.13 / 9.3 Step 3-6)。サーバーが配信するstate.yuuwakuUntilが未来なら、仏教陣営のコンボ判定幅が拡張される。
+export function yuuwakuActive(){return state.s.faction==="kon"&&now()<state.yuuwakuUntil;}
+// 暴走・誘惑いずれか有効な間はコンボ判定幅を190〜820msから150〜1000msへ拡張する。
+export function comboWindow(){return (bousouActive()||yuuwakuActive())?[150,1000]:[190,820];}
 export function lowCount(){return activeLowids().reduce((a,id)=>a+state.s.own[id],0);}
 export function comboMul(){return 1+Math.min(state.combo,state.up.comboMax)*state.up.comboStep;}
 export function baseMult(){return (1+state.up.gouPer*state.s.gou)*(1+state.up.kudokuVal*state.s.kudoku)*(1+state.up.lowSynergy*lowCount())*state.up.globalMul*state.up.permMul;}

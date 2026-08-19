@@ -26,4 +26,5 @@ export const ACH=[
   {id:"neh",n:"彼岸へ",d:"10番目の発生源を1つ得る",k:8,c:s=>ownAt(s,9)>=1},{id:"sm",n:"須弥の頂",d:"最後の発生源を1つ得る",k:12,c:s=>ownAt(s,11)>=1},
   {id:"r5",n:"輪廻の輪",d:"5回転生する",k:6,c:s=>s.rebirths>=5},{id:"r15",n:"六道を巡る",d:"15回転生する",k:9,c:s=>s.rebirths>=15},
   {id:"cm",n:"止まらぬ読経",d:"念仏コンボを10秒つなぐ",k:4,c:s=>s.maxComboMs>=10000},{id:"meta",n:"煩悩に何時間使ってんの",d:"10,000回たたく",k:0,c:s=>s.clicks>=10000},
+  {id:"seido1",n:"済度を施した者",d:"劣勢の煩悩陣営に済度を施す（仏教陣営限定）",k:5,c:s=>s.faction==="kon"&&s.seidoGiven},
 ];

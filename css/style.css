@@ -193,6 +193,7 @@
   .ofuda::before{content:"祓";position:absolute;left:7px;top:50%;transform:translateY(-50%);font-family:var(--serif);font-size:17px;color:#f6e7c4;background:#7a2f1c;width:26px;height:26px;border-radius:5px;display:grid;place-items:center}
   .ofuda.morph::before{content:"変"} .ofuda.goen::before{content:"縁";background:#e79b16}
   .ofuda.welcome::before{content:"還";background:#2f8f2f} .ofuda.luck::before{content:"福";background:#2f8f2f} .ofuda.rank::before{content:"位";background:#7a4fb0} .ofuda.houyou::before{content:"法";background:#b5473a}
+  .ofuda.seido::before{content:"済";background:#2b4159} .ofuda.yuuwaku::before{content:"誘";background:#b7401f}
   .ofuda.welcome{animation:slidein .4s cubic-bezier(.2,1.2,.4,1),out .5s ease 5.4s forwards}
   .ofuda .ot{font-size:9px;letter-spacing:.2em;color:#a86a2e}
   .ofuda .on{font-family:var(--serif);font-size:14px;margin-top:1px}
@@ -308,7 +309,7 @@
   .rresult{font-family:var(--serif);font-size:15px;color:var(--gold2);min-height:20px;margin-top:8px}
   .rleavebtn{display:block;margin:10px auto 0;font-size:11px;color:#a89468;background:none;border:none;cursor:pointer;text-decoration:underline}
 
-  .modebar{display:flex;flex-direction:column;align-items:center;gap:4px;margin:4px 0}
+  .modebar,.boonbar{display:flex;flex-direction:column;align-items:center;gap:4px;margin:4px 0}
   .modebtn{display:none;font-family:var(--serif);font-size:12.5px;padding:6px 18px;border-radius:14px;cursor:pointer;transition:opacity .15s}
   .modebtn:disabled{cursor:default;opacity:.55}
   .modebtn.kon{border:1.5px solid var(--kon);background:linear-gradient(180deg,#2a3f52,#1a2833);color:#bcd8f2}

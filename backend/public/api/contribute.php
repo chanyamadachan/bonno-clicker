@@ -4,6 +4,7 @@ require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../lib/security.php';
 require __DIR__ . '/../../lib/cp.php';
 require __DIR__ . '/../../lib/room.php';
+require __DIR__ . '/../../lib/boon.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -98,7 +99,8 @@ $upsertPlayer->execute([$playerId, $faction, $now, $now]);
 // 少数派救済ブースト(3.4)を送信時点の陣営人口比から算出し、CPに実際に反映する(0.3-B)。
 $active = bonno_active_player_counts($pdo, $CONTRIB_WINDOW_HOURS);
 $totalActive = $active['kon'] + $active['shu'];
-$boost = bonno_compute_boost($totalActive, $active[$faction] ?? 0);
+// 済度による一時ボーナス(5.13)を人口比boostに合成する(world-status.phpと同じ合成方法、9.3 Step 3-6)。
+$boost = bonno_compute_boost($totalActive, $active[$faction] ?? 0) + bonno_active_seido_bonus($pdo, $faction, $SEIDO_BOOST_BONUS_CAP);
 // 静寂モード中は「耐えるほど徳が積み上がる」を体現し、CP変換係数そのものを+25%する(5.12)。
 // 暴走モード側は別レイヤー(clickPower)で生の生産量が変わるだけで、CP式自体には手を加えない
 // (log圧縮の頭打ちが「量を追うがCP効率は伸びにくい」という煩悩陣営らしい性質を自然に生む設計)。

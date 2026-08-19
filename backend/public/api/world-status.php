@@ -4,6 +4,7 @@ require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../lib/security.php';
 require __DIR__ . '/../../lib/cp.php';
 require __DIR__ . '/../../lib/season.php';
+require __DIR__ . '/../../lib/boon.php';
 
 header('Content-Type: application/json; charset=utf-8');
 bonno_open_cors($ALLOWED_ORIGINS);
@@ -20,38 +21,26 @@ $seasonId = bonno_current_season_id($pdo);
 
 // グローバル集計のみ対象(room_id指定のルーム対戦は含めない)。常にサーバー時刻基準で窓を切る。
 // プレイヤーに直接見える天秤の値なので、単発の異常送信が振り切れないようwinsorizeしてから合算する(0.1-2)。
-$stmt = $pdo->prepare(
-  'SELECT player_id, faction, cp
-   FROM contributions
-   WHERE reported_at >= (NOW() - INTERVAL ? HOUR) AND room_id IS NULL'
-);
-$stmt->execute([$windowHours]);
-
-$rawCp = ['kon' => [], 'shu' => []];
-$players = ['kon' => [], 'shu' => []];
-foreach ($stmt->fetchAll() as $r) {
-  $f = (string)$r['faction'];
-  if (!isset($rawCp[$f])) continue;
-  $rawCp[$f][] = (float)$r['cp'];
-  $players[$f][(string)$r['player_id']] = true;
-}
-
-$cp = ['kon' => 0.0, 'shu' => 0.0];
-$active = ['kon' => 0, 'shu' => 0];
-foreach (['kon', 'shu'] as $f) {
-  $cp[$f] = array_sum(bonno_winsorize_cp($rawCp[$f], $WINSORIZE_PCT));
-  $active[$f] = count($players[$f]);
-}
+// boon.phpのbonno_compute_global_stats()に切り出し済み(9.3 Step 3-6、boon-seido/yuuwaku.phpの劣勢判定と計算を共有する)。
+$stats = bonno_compute_global_stats($pdo, $windowHours, $WINSORIZE_PCT);
+$cp = $stats['cp'];
+$active = $stats['active'];
+$balance = $stats['balance'];
 
 $totalActive = $active['kon'] + $active['shu'];
+// 少数派救済(3.4)に、済度による一時ボーナス(5.13)を合成した最終値。boost.*はこれが最終値であり、
+// フロント(js/ui/world.js)は無改修でそのまま使う(0.3-Bのboost適用パイプラインをそのまま延長)。
 $boost = [
-  'kon' => bonno_compute_boost($totalActive, $active['kon']),
-  'shu' => bonno_compute_boost($totalActive, $active['shu']),
+  'kon' => bonno_compute_boost($totalActive, $active['kon']) + bonno_active_seido_bonus($pdo, 'kon', $SEIDO_BOOST_BONUS_CAP),
+  'shu' => bonno_compute_boost($totalActive, $active['shu']) + bonno_active_seido_bonus($pdo, 'shu', $SEIDO_BOOST_BONUS_CAP),
 ];
-
-$eps = 1e-6;
-$sum = $cp['kon'] + $cp['shu'];
-$balance = $sum > 0 ? max(-1.0, min(1.0, ($cp['shu'] - $cp['kon']) / ($sum + $eps))) : 0.0;
+$boons = [
+  'seidoBonus' => [
+    'kon' => round(bonno_active_seido_bonus($pdo, 'kon', $SEIDO_BOOST_BONUS_CAP), 4),
+    'shu' => round(bonno_active_seido_bonus($pdo, 'shu', $SEIDO_BOOST_BONUS_CAP), 4),
+  ],
+  'yuuwakuUntilKon' => bonno_yuuwaku_expiry_ms($pdo),
+];
 
 echo json_encode([
   'seasonId' => $seasonId,
@@ -62,5 +51,6 @@ echo json_encode([
   'windowHours' => $windowHours,
   'activePlayers' => $active,
   'boost' => $boost,
+  'boons' => $boons,
   'updatedAt' => time(),
 ], JSON_UNESCAPED_UNICODE);

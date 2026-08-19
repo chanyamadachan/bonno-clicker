@@ -71,3 +71,20 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   window_start DATETIME NOT NULL,
   count INT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 済度・誘惑(企画設計書 5.13 / 9.3 Step 3-6)。発動ログ・日次上限(UNIQUE)・現在有効な効果の読み取り元を1テーブルで兼ねる。
+-- rate_limitsは1player_idにつき1行しか持てず高頻度送信専用のため、こちらは別枠として新設する。
+CREATE TABLE IF NOT EXISTS boon_events (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  boon_type ENUM('seido','yuuwaku') NOT NULL,
+  actor_player_id VARCHAR(64) NOT NULL,
+  actor_faction ENUM('kon','shu') NOT NULL,
+  target_faction ENUM('kon','shu') NOT NULL,
+  effect_value DOUBLE NOT NULL,
+  balance_at_cast DOUBLE NOT NULL,
+  cast_date DATE NOT NULL,
+  started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  UNIQUE KEY uniq_actor_type_day (actor_player_id, boon_type, cast_date),
+  INDEX idx_type_expires (boon_type, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

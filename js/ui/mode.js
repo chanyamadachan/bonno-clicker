@@ -2,7 +2,7 @@ import { $, zone } from "./dom.js";
 import { state } from "../core/state.js";
 import { save } from "../core/save.js";
 import { now } from "../core/format.js";
-import { seijakuActive, seijakuWarmingUp, seijakuOnCooldown, bousouActive, bousouOnCooldown } from "../core/formulas.js";
+import { seijakuActive, seijakuWarmingUp, seijakuOnCooldown, bousouActive, bousouOnCooldown, yuuwakuActive } from "../core/formulas.js";
 import { chime, fanfare } from "../core/audio.js";
 
 // 陣営固有メカニクス「静寂」「暴走」の数値仕様(企画設計書 5.12)。
@@ -54,20 +54,22 @@ export function renderModeUI(){
 
   if(s.faction==="kon"){
     bar.style.display = ""; seijakuBtn.style.display = "inline-block"; bousouBtn.style.display = "none";
+    // 誘惑(5.13)は自陣営の操作とは独立にサーバーから配信される一時効果なので、どの状態でも末尾に添える。
+    const yuuwakuNote = yuuwakuActive() ? "（誘惑の影響でコンボ判定幅拡張中）" : "";
     if(seijakuWarmingUp()){
       seijakuBtn.textContent = "静寂へ…"; seijakuBtn.disabled = true;
       zone.classList.add("mode-warmup");
-      statusEl.textContent = `静寂まで ${secsLeft(state.seijakuWarmupUntil)}秒`;
+      statusEl.textContent = `静寂まで ${secsLeft(state.seijakuWarmupUntil)}秒${yuuwakuNote}`;
     }else if(seijakuActive()){
       seijakuBtn.textContent = "静寂をやめる"; seijakuBtn.disabled = false;
       zone.classList.add("mode-seijaku");
-      statusEl.textContent = "静寂中：クリック威力-40% / 貢献の質+25%";
+      statusEl.textContent = `静寂中：クリック威力-40% / 貢献の質+25%${yuuwakuNote}`;
     }else if(seijakuOnCooldown()){
       seijakuBtn.textContent = "静寂へ"; seijakuBtn.disabled = true;
-      statusEl.textContent = `再び静寂に入れるまで ${secsLeft(state.seijakuCooldownUntil)}秒`;
+      statusEl.textContent = `再び静寂に入れるまで ${secsLeft(state.seijakuCooldownUntil)}秒${yuuwakuNote}`;
     }else{
       seijakuBtn.textContent = "静寂へ"; seijakuBtn.disabled = false;
-      statusEl.textContent = "";
+      statusEl.textContent = yuuwakuNote;
     }
   }else if(s.faction==="shu"){
     bar.style.display = ""; seijakuBtn.style.display = "none"; bousouBtn.style.display = "inline-block";
