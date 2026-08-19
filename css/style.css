@@ -12,9 +12,13 @@
   .loadingScreen.hide{opacity:0;pointer-events:none}
   .lswrap{text-align:center}
   .lslogo{font-family:var(--serif);font-size:26px;color:var(--gold);letter-spacing:.08em;text-shadow:0 2px 0 #1c140d,0 0 20px rgba(232,192,96,.4);margin-bottom:22px}
-  .lsspinner{width:42px;height:42px;margin:0 auto 18px;border-radius:50%;border:3px solid rgba(232,192,96,.22);border-top-color:var(--gold2);animation:lsspin 1s linear infinite}
-  @keyframes lsspin{to{transform:rotate(360deg)}}
+  .lsbar{width:220px;height:8px;margin:0 auto 14px;border-radius:5px;background:rgba(232,192,96,.15);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}
+  .lsbarfill{height:100%;width:0%;border-radius:5px;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 0 8px rgba(232,192,96,.5);transition:width .35s ease}
   .lstext{font-family:var(--serif);font-size:13px;color:#c9b990;letter-spacing:.06em}
+  .lstext #lsPercent{color:var(--gold2);font-variant-numeric:tabular-nums}
+  .loadingScreen.stalled .lsbarfill{background:linear-gradient(90deg,#b0563f,#d97a54);box-shadow:0 0 8px rgba(217,122,84,.5)}
+  .loadingScreen.stalled .lstext{color:#e0b090}
+  .lsReloadBtn{margin:18px auto 0;font-family:var(--serif);font-size:13.5px;padding:10px 22px;border:2px solid #7a4f10;border-radius:8px;background:linear-gradient(180deg,#3a2a14,#241a12);color:var(--gold2);cursor:pointer}
 
   #bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;
     background:radial-gradient(140% 100% at 50% -12%,#3d2c1d,#160f09),radial-gradient(90% 70% at 12% 112%,rgba(120,80,160,.20),transparent 60%),radial-gradient(90% 70% at 88% 112%,rgba(180,130,50,.18),transparent 60%),linear-gradient(180deg,#2c2015,#130c07)}

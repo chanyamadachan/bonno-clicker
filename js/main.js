@@ -12,7 +12,7 @@ import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check,
 import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
 import { initFactionUI } from "./ui/faction.js";
-import { startIntroFlow, hideLoadingScreen } from "./ui/intro.js";
+import { startIntroFlow, hideLoadingScreen, initLoadingScreen, setLoadingProgress, showLoadingError } from "./ui/intro.js";
 import { renderWorldGauge, initWorldHistory } from "./ui/world.js";
 import { initRoomUI, updateRoomChip } from "./ui/room.js";
 import { initModeUI, renderModeUI } from "./ui/mode.js";
@@ -53,32 +53,43 @@ function frame(){
 }
 
 async function init(){
-  const lastSeen = await load();
-  $("sound").textContent = state.s.muted ? "🔕" : "🔔";
-  buildSprites();
-  computeUp();
-  offlineWelcome(lastSeen);
-  state.curTier = mokTierOf(state.s.total);
-  applyMokTier(state.curTier);
-  applyFactionLabels();
-  state.lastPeak = state.s.bonno;
-  initRank(rankIdx());
-  renderActivePerks();
-  initSceneryTooltip();
-  sizeRain();
-  addEventListener("resize", sizeRain);
-  tk.innerHTML = NEWS[0]();
-  if(state.s.clicks < 1) zone.classList.add("hint");
-  initFactionUI();
-  initRoomUI();
-  initModeUI();
-  initBoonUI();
-  initWorldHistory();
-  initFarewellUI();
-  startIntroFlow();
-  hideLoadingScreen();
-  state.dirty = true;
-  requestAnimationFrame(frame);
+  initLoadingScreen();
+  try{
+    setLoadingProgress(10, "セーブデータを読み込み中…");
+    const lastSeen = await load();
+    setLoadingProgress(35, "初期設定を準備中…");
+    $("sound").textContent = state.s.muted ? "🔕" : "🔔";
+    buildSprites();
+    computeUp();
+    setLoadingProgress(55, "留守のあいだの進行を計算中…");
+    offlineWelcome(lastSeen);
+    state.curTier = mokTierOf(state.s.total);
+    applyMokTier(state.curTier);
+    applyFactionLabels();
+    state.lastPeak = state.s.bonno;
+    initRank(rankIdx());
+    renderActivePerks();
+    initSceneryTooltip();
+    setLoadingProgress(75, "画面を構築中…");
+    sizeRain();
+    addEventListener("resize", sizeRain);
+    tk.innerHTML = NEWS[0]();
+    if(state.s.clicks < 1) zone.classList.add("hint");
+    initFactionUI();
+    initRoomUI();
+    initModeUI();
+    initBoonUI();
+    initWorldHistory();
+    initFarewellUI();
+    setLoadingProgress(95, "起動中…");
+    startIntroFlow();
+    hideLoadingScreen();
+    state.dirty = true;
+    requestAnimationFrame(frame);
+  }catch(e){
+    console.error("[bonno-clicker] init failed", e);
+    showLoadingError();
+  }
 }
 
 init();

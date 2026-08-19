@@ -10,8 +10,9 @@
   <div class="loadingScreen" id="loadingScreen">
     <div class="lswrap">
       <div class="lslogo">煩悩クリッカー</div>
-      <div class="lsspinner"></div>
-      <div class="lstext">ゲームロード中…</div>
+      <div class="lsbar"><div class="lsbarfill" id="lsbarFill"></div></div>
+      <div class="lstext"><span id="lsLabel">ゲームロード中…</span> <span id="lsPercent">0%</span></div>
+      <button class="lsReloadBtn" id="lsReloadBtn" style="display:none">再読み込みする</button>
     </div>
   </div>
   <div id="bgfx"></div><div id="worldTone"></div><div id="motes"></div>
