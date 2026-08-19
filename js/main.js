@@ -11,7 +11,8 @@ import { renderShop, updateAfford } from "./ui/shop.js";
 import { renderStats, setCount, updateRebirth, checkRankChange, initRank, check, rotateNews } from "./ui/stats.js";
 import { feverTick } from "./ui/events.js";
 import { renderActivePerks } from "./ui/rebirth.js";
-import { maybeShowFactionPrompt, initFactionUI } from "./ui/faction.js";
+import { initFactionUI } from "./ui/faction.js";
+import { startIntroFlow } from "./ui/intro.js";
 import { renderWorldGauge, initWorldHistory } from "./ui/world.js";
 import { initRoomUI, updateRoomChip } from "./ui/room.js";
 import { initModeUI, renderModeUI } from "./ui/mode.js";
@@ -73,7 +74,7 @@ async function init(){
   initBoonUI();
   initWorldHistory();
   initFarewellUI();
-  maybeShowFactionPrompt();
+  startIntroFlow();
   state.dirty = true;
   requestAnimationFrame(frame);
 }

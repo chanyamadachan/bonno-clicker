@@ -49,10 +49,13 @@ async function ensureServer() {
 }
 
 // Opens the app, dismisses the faction-select modal that always appears on
-// first load, and returns {browser, page, errors}. errors[] collects any
-// console "error" messages and uncaught pageerrors seen so far.
-// opts.faction: 'kon' | 'shu' picks that faction instead of dismissing via
-// "spectate" — needed for anything gated on state.s.faction (mode/boon UI).
+// first load (the main `.app`/#viewGame screen carries a `pre-start` class
+// and is display:none until a faction is settled), and returns
+// {browser, page, errors}. errors[] collects any console "error" messages
+// and uncaught pageerrors seen so far.
+// opts.faction: 'kon' | 'shu' picks that faction explicitly instead of the
+// "#fRandom" random pick — needed for anything gated on state.s.faction
+// (mode/boon UI).
 async function openApp(opts = {}) {
   const { faction = null } = opts;
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
@@ -66,11 +69,12 @@ async function openApp(opts = {}) {
     const btn = page.locator(faction === 'kon' ? '#chooseKon' : '#chooseShu');
     if (await btn.count() > 0) { await btn.click(); await page.waitForTimeout(500); }
   } else {
-    // First-load faction-select modal (仏教陣営/煩悩陣営). Dismiss via the
-    // "spectate" link to reach the main 3-column game screen.
-    const spectate = page.getByText('まだ選ばない');
-    if (await spectate.count() > 0) {
-      await spectate.click();
+    // First-load faction-select modal (仏教陣営/煩悩陣営/ルーム対戦). Dismiss via
+    // "ランダムに選ぶ" to reach the main 3-column game screen without committing
+    // to a specific faction.
+    const random = page.locator('#fRandom');
+    if (await random.count() > 0) {
+      await random.click();
       await page.waitForTimeout(500);
     }
   }

@@ -1,6 +1,7 @@
 import { $ } from "./dom.js";
 import { state } from "../core/state.js";
 import { save } from "../core/save.js";
+import { showGame } from "./intro.js";
 
 const API_BASE = "/backend/public/api";
 const POLL_INTERVAL_MS = 15 * 1000; // 少人数・短時間のルーム対戦は世界情勢(60秒)より短い間隔で確認する
@@ -43,13 +44,34 @@ function switchTab(tab){
   $("roomJoinPane").style.display = creating ? "none" : "";
 }
 
-function openRoomModal(){
+function updateFactionPick(){
+  const has = !!state.s.faction;
+  $("roomFactionPick").style.display = has ? "none" : "";
+  $("roomChooseKon").classList.toggle("on", state.s.faction==="kon");
+  $("roomChooseShu").classList.toggle("on", state.s.faction==="shu");
+}
+
+function pickFaction(id){
+  state.s.faction = id;
+  state.dirty = true;
+  save();
+  updateFactionPick();
+}
+
+export function openRoomModal(){
   $("roomError").textContent = "";
+  updateFactionPick();
   if(state.s.roomCode){ showActivePane(); refreshRoomStatus(); }
   else{ showHomePane(); switchTab("create"); }
   $("roomModal").classList.add("on");
 }
-function closeRoomModal(){ $("roomModal").classList.remove("on"); }
+function closeRoomModal(){
+  $("roomModal").classList.remove("on");
+  // 初回導線中（陣営未選択でプレイ画面がまだ隠れている間）にルームを閉じた場合は、
+  // 陣営を選ばずに終われないよう陣営選択モーダルへ戻す。陣営決定済みならそのままゲームを見せる。
+  if(state.s.faction) showGame();
+  else if($("viewGame").classList.contains("pre-start")) $("factionModal").classList.add("on");
+}
 
 async function createRoom(){
   if(!state.s.faction){ $("roomError").textContent = "先に陣営を選んでください。"; return; }
@@ -68,6 +90,7 @@ async function createRoom(){
     save();
     showActivePane();
     startPolling();
+    showGame();
   }catch(e){
     $("roomError").textContent = "通信に失敗しました。しばらくしてから試してください。";
   }
@@ -90,6 +113,7 @@ async function joinRoom(){
     save();
     showActivePane();
     startPolling();
+    showGame();
   }catch(e){
     $("roomError").textContent = "通信に失敗しました。しばらくしてから試してください。";
   }
@@ -169,6 +193,8 @@ export function updateRoomChip(){
 export function initRoomUI(){
   $("roomChip").addEventListener("click", openRoomModal);
   $("roomClose").addEventListener("click", closeRoomModal);
+  $("roomChooseKon").addEventListener("click", ()=>pickFaction("kon"));
+  $("roomChooseShu").addEventListener("click", ()=>pickFaction("shu"));
   $("rtabCreate").addEventListener("click", ()=>switchTab("create"));
   $("rtabJoin").addEventListener("click", ()=>switchTab("join"));
   $("roomCreateBtn").addEventListener("click", createRoom);

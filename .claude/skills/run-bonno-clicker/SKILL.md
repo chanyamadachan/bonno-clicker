@@ -80,10 +80,13 @@ no test directory). `smoke` above is the closest thing to one.
   `backend/config.php`'s `$ALLOWED_ORIGINS`, which defaults to
   allowing :8811.
 - **A faction-select modal blocks the main screen on every fresh load**
-  (no save data / cleared storage). It offers 仏教陣営 / 煩悩陣営 /
-  "まだ選ばない（観戦する）". The driver clicks the "まだ選ばない" text
-  to dismiss it — without that click, `#clickzone` and the rest of the
-  main 3-column layout aren't in the DOM yet.
+  (no save data / cleared storage), and the main screen (`.app`/#viewGame`)
+  actually carries a `pre-start` class (`display:none`) until it's
+  dismissed — so it's not just covered, it's genuinely hidden. It offers
+  仏教陣営 / 煩悩陣営 / "友達を招待してルーム対戦を始める" / "ランダムに選ぶ".
+  The driver clicks `#fRandom` to dismiss it — without that click,
+  `#clickzone` and the rest of the main 3-column layout are present in the
+  DOM but not visible/clickable.
 - **The clickable moktgyo element is `#clickzone`, not `#zone` or
   `#mokSvg`.** `#mokSvg` is the SVG nested inside it, but the click
   handler is bound to the `#clickzone` wrapper div. Clicking `#mokSvg`
@@ -102,8 +105,9 @@ no test directory). `smoke` above is the closest thing to one.
   was run without `-D playwright` present in `package.json`. Run
   `npm install` from repo root.
 - **`page.click('#clickzone')` times out / element not found**: the
-  faction-select modal is still open and covering the main screen —
-  make sure the "まだ選ばない" dismiss step ran first.
+  faction-select modal is still open and the main screen still carries its
+  `pre-start` (display:none) class — make sure the `#fRandom` dismiss step
+  ran first.
 - **`ensureServer()` in the driver never sees the server come up**:
   check nothing else is bound to :8811 (`lsof -ti:8811`) and that PHP
   is on PATH (`php -v`).

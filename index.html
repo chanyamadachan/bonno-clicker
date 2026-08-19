@@ -38,7 +38,7 @@
     </div>
   </div>
 
-  <div class="app" id="viewGame">
+  <div class="app pre-start" id="viewGame">
     <section class="col-scene card">
       <div class="scenetabs"><button class="stab on" id="tabGaran">伽藍</button><button class="stab" id="tabInen">因縁</button></div>
       <div class="sceneBody">
@@ -152,7 +152,9 @@
         <span class="fcdesc">脳を叩き、快楽に溺れて欲望を積む。<br>世界に煩悩を撒き散らす。</span>
       </button>
     </div>
-    <button class="fskip" id="fSkip">まだ選ばない（観戦する）</button>
+    <div class="fordiv">または</div>
+    <button class="froomlink" id="fRoomBtn">友達を招待してルーム対戦を始める</button>
+    <button class="fskip" id="fRandom">ランダムに選ぶ</button>
   </div></div>
 
   <div class="roomModal" id="roomModal"><div class="rbox">
@@ -161,6 +163,13 @@
     <div id="roomHome">
       <div class="rtitle">ルーム対戦</div>
       <div class="rsub">友達を誘って、1対1〜数人だけの閉じた陣営対戦を始める。</div>
+      <div class="rfaction" id="roomFactionPick">
+        <div class="rflabel">あなたの陣営</div>
+        <div class="rfchoices">
+          <button class="rfchoice kon" id="roomChooseKon">仏教陣営</button>
+          <button class="rfchoice shu" id="roomChooseShu">煩悩陣営</button>
+        </div>
+      </div>
       <div class="rtabs">
         <button class="rtab on" id="rtabCreate">ルームを作る</button>
         <button class="rtab" id="rtabJoin">合言葉で参加</button>
