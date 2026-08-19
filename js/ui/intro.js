@@ -46,7 +46,6 @@ export function hideLoadingScreen(){
   const el = $("loadingScreen");
   if(!el) return;
   el.classList.add("hide");
-  setTimeout(()=>{ el.style.display = "none"; }, 500);
 }
 
 export function showGame(){
