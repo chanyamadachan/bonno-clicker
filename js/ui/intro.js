@@ -2,6 +2,13 @@ import { $ } from "./dom.js";
 import { state } from "../core/state.js";
 import { sizeRain } from "./rain.js";
 
+export function hideLoadingScreen(){
+  const el = $("loadingScreen");
+  if(!el) return;
+  el.classList.add("hide");
+  setTimeout(()=>{ el.style.display = "none"; }, 500);
+}
+
 export function showGame(){
   $("factionModal").classList.remove("on");
   $("roomModal").classList.remove("on");

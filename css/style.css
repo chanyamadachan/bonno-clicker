@@ -7,6 +7,15 @@
   body{font-family:var(--sans);color:var(--cream);min-height:100%;background:#140d07}
   .pix{image-rendering:pixelated;image-rendering:crisp-edges;background-repeat:no-repeat;background-position:center;background-size:contain}
 
+  .loadingScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(140% 100% at 50% 40%,#2c2015,#140d07 72%);transition:opacity .5s ease}
+  .loadingScreen.hide{opacity:0;pointer-events:none}
+  .lswrap{text-align:center}
+  .lslogo{font-family:var(--serif);font-size:26px;color:var(--gold);letter-spacing:.08em;text-shadow:0 2px 0 #1c140d,0 0 20px rgba(232,192,96,.4);margin-bottom:22px}
+  .lsspinner{width:42px;height:42px;margin:0 auto 18px;border-radius:50%;border:3px solid rgba(232,192,96,.22);border-top-color:var(--gold2);animation:lsspin 1s linear infinite}
+  @keyframes lsspin{to{transform:rotate(360deg)}}
+  .lstext{font-family:var(--serif);font-size:13px;color:#c9b990;letter-spacing:.06em}
+
   #bgfx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;
     background:radial-gradient(140% 100% at 50% -12%,#3d2c1d,#160f09),radial-gradient(90% 70% at 12% 112%,rgba(120,80,160,.20),transparent 60%),radial-gradient(90% 70% at 88% 112%,rgba(180,130,50,.18),transparent 60%),linear-gradient(180deg,#2c2015,#130c07)}
   #bgfx::before,#bgfx::after{content:"";position:absolute;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(232,192,96,.055) 0 3deg,transparent 3deg 11deg)}
