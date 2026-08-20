@@ -149,7 +149,7 @@ function renderPopulation(){
   }
   const { kon, shu } = cached.activePlayers;
   const total = kon + shu;
-  $("worldPop").textContent = total>0 ? `直近アクティブ ${total}人（仏教${kon}・煩悩${shu}）` : "直近アクティブ 0人（今が一番の狙い目）";
+  $("worldPop").textContent = total>0 ? `世界全体で直近アクティブ ${total}人（仏教${kon}・煩悩${shu}）` : "世界全体で直近アクティブ 0人（今が一番の狙い目）";
 
   const faction = state.s.faction;
   const boost = cached.boost && faction ? cached.boost[faction] : null;

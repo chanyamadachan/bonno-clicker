@@ -223,7 +223,7 @@ function renderRoomStatus(data){
     $("roomMarker").style.left = ((data.balance+1)/2*100)+"%";
     $("roomKonCP").textContent = "仏教 "+data.konCP.toFixed(1);
     $("roomShuCP").textContent = "煩悩 "+data.shuCP.toFixed(1);
-    $("roomParticipants").textContent = `参加者 ${data.participants}人 / 上限${data.maxPlayers}人`;
+    $("roomParticipants").textContent = `参加者 ${data.participants}人 / 上限${data.maxPlayers}人（仏教${data.konCount}・煩悩${data.shuCount}）`;
     const resultEl = $("roomResult"), againBtn = $("roomAgainBtn");
     if(data.status==="finished"){
       if(data.winnerFaction==="kon") resultEl.textContent = "仏教陣営の勝利。";
