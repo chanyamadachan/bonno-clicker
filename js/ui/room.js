@@ -216,6 +216,19 @@ async function refreshRoomStatus(){
   }
 }
 
+// トップバーの世界情勢チップの位置にある「ルーム情勢」チップ(参加中のみ表示)。ルーム対戦は
+// グローバルな世界情勢とは別の閉じた集計であるべきというUX方針(2026-08-20)に基づき、対戦中は
+// world.js側の#worldGaugeを隠してこちらへ差し替える。バランス計算・ラベル文言はサーバー側の
+// room-status.php(bonno_balance_label、world-status.phpと同じ関数)の値をそのまま使う。
+function renderRoomGauge(data){
+  $("roomGaugeMarker").style.left = ((data.balance+1)/2*100)+"%";
+  $("roomGaugeLabel").textContent = data.label;
+  $("roomGaugePop").textContent = `参加者 ${data.participants}/${data.maxPlayers}人（仏教${data.konCount}・煩悩${data.shuCount}）`;
+  $("roomGaugeSub").textContent = data.status==="finished"
+    ? (data.winnerFaction==="kon" ? "仏教陣営の勝利" : data.winnerFaction==="shu" ? "煩悩陣営の勝利" : "引き分け")
+    : "残り "+fmtCountdown(data.remainingSeconds);
+}
+
 function renderRoomStatus(data){
   if($("roomModal").classList.contains("on") && $("roomActive").style.display!=="none"){
     $("roomCodeDisplay").textContent = data.code;
@@ -242,9 +255,13 @@ function renderRoomStatus(data){
 // main.js の frame() の0.15秒間隔UI更新から呼ぶ(トップバーのチップを常時最新に保つ)。
 export function updateRoomChip(){
   const chip = $("roomChipText");
-  if(!state.s.roomCode){ chip.textContent = "対戦する"; return; }
+  const inRoom = !!state.s.roomCode;
+  $("worldGauge").style.display = inRoom ? "none" : "";
+  $("roomGauge").style.display = inRoom ? "" : "none";
+  if(!inRoom){ chip.textContent = "対戦する"; return; }
   if(!lastStatus){ chip.textContent = "対戦中"; return; }
   chip.textContent = lastStatus.status==="finished" ? "結果を見る" : fmtCountdown(lastStatus.remainingSeconds);
+  renderRoomGauge(lastStatus);
 }
 
 // トップレベルで即時登録すると循環import経路で壊れうるため、main.jsの起動シーケンスから呼ぶ(CLAUDE.md「循環importの注意」)。
